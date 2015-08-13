@@ -1,0 +1,20 @@
+debug:
+server:
+  port: 9999
+
+security:
+  ignored: /open,/sdoc.jsp,/*.js,/api-docs,/api-docs/default/*,/images/*,/lib/*,/css/*
+
+spring.oauth2:
+  resource:
+    id: cloud_controller
+    jwt:
+      keyUri: ${vcap.services.sso.credentials.tokenKey}
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+
+cf:
+  resource: ${vcap.services.sso.credentials.apiEndpoint}
+  uaa: ${vcap.services.sso.credentials.uaaUri}

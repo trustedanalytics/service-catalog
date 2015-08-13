@@ -1,0 +1,14 @@
+debug:
+server:
+  port: 0
+
+security:
+  ignored: /rest/**
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.trustedanalytics: DEBUG
+
+cf:
+  resource: https://test.url
