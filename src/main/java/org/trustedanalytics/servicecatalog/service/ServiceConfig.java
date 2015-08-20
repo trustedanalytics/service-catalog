@@ -15,20 +15,47 @@
  */
 package org.trustedanalytics.servicecatalog.service;
 
-import org.trustedanalytics.cloud.auth.OAuth2TokenRetriever;
+import static java.util.Collections.singletonList;
+import static org.springframework.web.context.WebApplicationContext.SCOPE_REQUEST;
+import static org.springframework.context.annotation.ScopedProxyMode.TARGET_CLASS;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.Scope;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.client.RestTemplate;
+
+import org.trustedanalytics.cloud.auth.HeaderAddingHttpInterceptor;
+import org.trustedanalytics.cloud.auth.OAuth2TokenRetriever;
 
 @Configuration
 @Profile({"default", "cloud"})
 public class ServiceConfig {
 
+    /**
+     * This RestTemplate is injected into ccClient bean in {@link org.trustedanalytics.servicecatalog.cf.CcConfig}
+     * which is being created with scope per-request and each time alters this RestTamplate by setting
+     * authorization token. Although RestTemplate is thread-safe and in general case can be injected as singleton, in
+     * this case it MUST also be created with per-request scope to avoid security risk.
+     * @return
+     */
     @Bean
-    protected RestTemplate restTemplate() {
-        return new RestTemplate();
+    @Scope(value = SCOPE_REQUEST, proxyMode= TARGET_CLASS)
+    protected RestTemplate restTemplateWithOAuth2Token(OAuth2TokenRetriever tokenRetriever) {
+        /*Default SimpleClientHttpRequestFactory caused random "Unexpected end of file" errors while createing
+        requests to Clound Controller*/
+        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
+        RestTemplate restTemplate = new RestTemplate(factory);
+        final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        final String token = tokenRetriever.getAuthToken(auth);
+        ClientHttpRequestInterceptor interceptor =
+                new HeaderAddingHttpInterceptor("Authorization", "bearer " + token);
+        restTemplate.setInterceptors(singletonList(interceptor));
+        return restTemplate;
     }
 
     @Bean
