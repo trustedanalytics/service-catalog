@@ -104,6 +104,10 @@
 
     <properties>
         <start-class>org.trustedanalytics.servicecatalog.Application</start-class>
+    	<jacoco-measurement-instructions>0.4181</jacoco-measurement-instructions>   
+        <jacoco-measurement-branches>0.4320</jacoco-measurement-branches>           
+        <jacoco-measurement-lines>0.4823</jacoco-measurement-lines>                 
+        <jacoco-measurement-classes>0.5500</jacoco-measurement-classes>
     </properties>
 
     <build>
@@ -169,30 +173,6 @@
                         <argument>manifest.yml</argument>
                     </arguments>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.7.4.201502262128</version>
-                <configuration>
-                    <destFile>${basedir}/target/coverage-reports/jacoco-unit.exec</destFile>
-                    <dataFile>${basedir}/target/coverage-reports/jacoco-unit.exec</dataFile>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>jacoco-initialize</id>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>jacoco-site</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
             <groupId>com.mycila</groupId>
