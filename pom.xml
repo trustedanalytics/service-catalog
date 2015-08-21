@@ -104,10 +104,10 @@
 
     <properties>
         <start-class>org.trustedanalytics.servicecatalog.Application</start-class>
-    	<jacoco-measurement-instructions>0.4181</jacoco-measurement-instructions>   
-        <jacoco-measurement-branches>0.4320</jacoco-measurement-branches>           
-        <jacoco-measurement-lines>0.4823</jacoco-measurement-lines>                 
-        <jacoco-measurement-classes>0.5500</jacoco-measurement-classes>
+    	<jacoco-measurement-instructions>0.2204</jacoco-measurement-instructions>
+        <jacoco-measurement-branches>0.2403</jacoco-measurement-branches>
+        <jacoco-measurement-lines>0.2521</jacoco-measurement-lines>
+        <jacoco-measurement-classes>0.4761</jacoco-measurement-classes>
     </properties>
 
     <build>
