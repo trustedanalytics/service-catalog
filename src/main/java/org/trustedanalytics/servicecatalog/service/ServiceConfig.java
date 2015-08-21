@@ -15,21 +15,16 @@
  */
 package org.trustedanalytics.servicecatalog.service;
 
-import static java.util.Collections.singletonList;
-import static org.springframework.web.context.WebApplicationContext.SCOPE_REQUEST;
 import static org.springframework.context.annotation.ScopedProxyMode.TARGET_CLASS;
+import static org.springframework.web.context.WebApplicationContext.SCOPE_REQUEST;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
-import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.client.RestTemplate;
 
-import org.trustedanalytics.cloud.auth.HeaderAddingHttpInterceptor;
 import org.trustedanalytics.cloud.auth.OAuth2TokenRetriever;
 
 @Configuration
@@ -50,11 +45,6 @@ public class ServiceConfig {
         requests to Clound Controller*/
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
         RestTemplate restTemplate = new RestTemplate(factory);
-        final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        final String token = tokenRetriever.getAuthToken(auth);
-        ClientHttpRequestInterceptor interceptor =
-                new HeaderAddingHttpInterceptor("Authorization", "bearer " + token);
-        restTemplate.setInterceptors(singletonList(interceptor));
         return restTemplate;
     }
 

@@ -30,7 +30,7 @@ import org.springframework.web.client.RestTemplate;
 public class ITConfig {
 
     @Bean
-    protected RestOperations restTemplate() {
+    protected RestOperations restTemplateWithOAuth2Token() {
         return mock(RestTemplate.class);
     }
 
