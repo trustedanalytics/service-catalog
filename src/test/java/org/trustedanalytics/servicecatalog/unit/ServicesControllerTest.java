@@ -20,7 +20,9 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.trustedanalytics.cloud.cc.api.CcOperations;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.trustedanalytics.cloud.cc.api.*;
 import org.trustedanalytics.servicecatalog.service.rest.ServicesController;
 
 import org.junit.Before;
@@ -29,6 +31,10 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import rx.Observable;
+
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.UUID;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -41,6 +47,35 @@ public class ServicesControllerTest {
     @Before
     public void setUp() {
         sut = new ServicesController(ccClient);
+    }
+
+    @Test
+    public void getPlanGuid_labelAndPlanSpecified_returnPlanGuidFromCloudfoundry() throws JSONException{
+
+        UUID guid = UUID.randomUUID();
+
+        Collection<CcExtendedService> expectedExtendedServices = new ArrayList<CcExtendedService>() {{}};
+        CcExtendedService extendedService = new CcExtendedService();
+        extendedService.setMetadata(new CcMetadata());
+        extendedService.getMetadata().setGuid(guid);
+        extendedService.setEntity(new CcExtendedServiceEntity());
+        extendedService.getEntity().setLabel("label");
+        expectedExtendedServices.add(extendedService);
+
+        Collection<CcExtendedServicePlan> expectedExtendedServicePlan = new ArrayList<CcExtendedServicePlan>() {{}};
+        CcExtendedServicePlan extendedServicePlan = new CcExtendedServicePlan();
+        extendedServicePlan.setEntity(new CcExtendedServicePlanEntity());
+        extendedServicePlan.getEntity().setName("plan");
+        extendedServicePlan.setMetadata(new CcMetadata());
+        extendedServicePlan.getMetadata().setGuid(guid);
+        expectedExtendedServicePlan.add(extendedServicePlan);
+
+        when(ccClient.getExtendedServices()).thenReturn(Observable.from(expectedExtendedServices));
+        when(ccClient.getExtendedServicePlans(any())).thenReturn(Observable.from(expectedExtendedServicePlan));
+
+        JSONObject json = new JSONObject(sut.getPlanGuid("label", "plan"));
+
+        assertEquals(json.get("guid"), guid.toString());
     }
 
     @Test
