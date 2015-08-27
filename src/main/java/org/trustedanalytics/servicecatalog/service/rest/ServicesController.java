@@ -35,7 +35,7 @@ import java.util.UUID;
 public class ServicesController {
 
     public static final String GET_ALL_SERVICES_URL = "/rest/services";
-    public static final String GET_SERVICE_PLAN_GUID_URL = "/rest/service_plan_guid";
+    public static final String GET_SERVICE_PLAN_URL = "/rest/service_plan";
     public static final String GET_FILTERED_SERVICES_URL = "/rest/services?space={space}";
     public static final String GET_SERVICE_DETAILS_URL = "/rest/services/{service}";
 
@@ -46,7 +46,7 @@ public class ServicesController {
         this.ccClient = ccClient;
     }
 
-    @RequestMapping(value = GET_SERVICE_PLAN_GUID_URL, method = GET, produces = APPLICATION_JSON_VALUE)
+    @RequestMapping(value = GET_SERVICE_PLAN_URL, method = GET, produces = APPLICATION_JSON_VALUE)
     public ServicePlanResponse getPlanGuid(@RequestParam(required = true) String label, @RequestParam(required = true) String plan) {
 
         ServicePlanResponse servicePlanResponse = new ServicePlanResponse();
