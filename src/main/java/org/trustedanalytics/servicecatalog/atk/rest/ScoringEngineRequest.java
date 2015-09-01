@@ -65,7 +65,11 @@ public class ScoringEngineRequest {
         this.servicePlanGuid = servicePlanGuid;
     }
 
-    public UUID getOrgGuid() { return orgGuid; }
+    public UUID getOrgGuid() {
+        return orgGuid;
+    }
 
-    public void setOrgGuid(UUID orgGuid) { this.orgGuid = orgGuid; }
+    public void setOrgGuid(UUID orgGuid) {
+        this.orgGuid = orgGuid;
+    }
 }

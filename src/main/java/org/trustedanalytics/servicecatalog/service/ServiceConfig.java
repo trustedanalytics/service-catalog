@@ -40,12 +40,11 @@ public class ServiceConfig {
      */
     @Bean
     @Scope(value = SCOPE_REQUEST, proxyMode= TARGET_CLASS)
-    protected RestTemplate restTemplateWithOAuth2Token(OAuth2TokenRetriever tokenRetriever) {
+    protected RestTemplate restTemplateWithOAuth2Token() {
         /*Default SimpleClientHttpRequestFactory caused random "Unexpected end of file" errors while createing
         requests to Clound Controller*/
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
-        RestTemplate restTemplate = new RestTemplate(factory);
-        return restTemplate;
+        return(new RestTemplate(factory));
     }
 
     @Bean

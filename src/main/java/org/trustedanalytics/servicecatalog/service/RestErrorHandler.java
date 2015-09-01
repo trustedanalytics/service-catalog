@@ -83,7 +83,8 @@ public class RestErrorHandler {
         Map<String, String> map = new HashMap<>();
         try {
             ObjectMapper mapper = new ObjectMapper();
-            map = mapper.readValue(json, new TypeReference<HashMap<String,String>>() { });
+            map = mapper.readValue(json, new TypeReference<HashMap<String,String>>() {
+            });
         } catch (Exception e) {
             LOGGER.error("Error when extracting message from JSON. Continuing...", e);
         }
