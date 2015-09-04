@@ -28,6 +28,8 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 import org.trustedanalytics.cloud.auth.OAuth2TokenRetriever;
+import org.trustedanalytics.cloud.cc.api.CcExtendedServiceInstance;
+import org.trustedanalytics.cloud.cc.api.CcMetadata;
 import org.trustedanalytics.cloud.cc.api.CcNewServiceInstance;
 import org.trustedanalytics.cloud.cc.api.CcSummary;
 import org.trustedanalytics.servicecatalog.Application;
@@ -124,26 +126,29 @@ public class ServiceInstancesIT {
     public void createNewServiceInstance_shouldCreateNewInstanceInCloudFoundry() {
 
         String CF_SERVICE_INSTANCES_URL = cfApiBaseUrl + "/v2/service_instances";
+        UUID serviceInstanceGuid = UUID.randomUUID();
 
         final CcNewServiceInstance INSTANCE_PASSED =
             new CcNewServiceInstance("passed", UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
-        final CcNewServiceInstance INSTANCE_RETRIEVED =
-            new CcNewServiceInstance("retrieved", UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
+        final CcExtendedServiceInstance INSTANCE_RETRIEVED =
+            new CcExtendedServiceInstance();
+        INSTANCE_RETRIEVED.setMetadata(new CcMetadata());
+        INSTANCE_RETRIEVED.getMetadata().setGuid(serviceInstanceGuid);
 
         when(restTemplate.postForEntity(any(String.class), any(CcNewServiceInstance.class),
-            eq(CcNewServiceInstance.class)))
+            eq(CcExtendedServiceInstance.class)))
             .thenReturn(new ResponseEntity<>(INSTANCE_RETRIEVED, HttpStatus.OK));
 
         TestRestTemplate testRestTemplate = new TestRestTemplate();
-        ResponseEntity<CcNewServiceInstance> response = RestOperationsHelpers.postForEntityWithToken(testRestTemplate,
+        ResponseEntity<CcExtendedServiceInstance> response = RestOperationsHelpers.postForEntityWithToken(testRestTemplate,
                 TOKEN, BASE_URL + ServiceInstancesController.CREATE_SERVICE_INSTANCE_URL,
-                INSTANCE_PASSED, CcNewServiceInstance.class);
+                INSTANCE_PASSED, CcExtendedServiceInstance.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(INSTANCE_RETRIEVED, response.getBody());
 
         PlatformVerifiers.verifySetTokenThenPostForEntity(restTemplate, TOKEN, CF_SERVICE_INSTANCES_URL,
-                INSTANCE_PASSED, CcNewServiceInstance.class);
+                INSTANCE_PASSED, CcExtendedServiceInstance.class);
     }
 
     @Test

@@ -20,6 +20,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
+import org.trustedanalytics.cloud.cc.api.CcExtendedServiceInstance;
 import org.trustedanalytics.cloud.cc.api.CcNewServiceInstance;
 import org.trustedanalytics.cloud.cc.api.CcOperations;
 import org.trustedanalytics.cloud.cc.api.CcSummary;
@@ -64,9 +65,9 @@ import java.util.UUID;
     }
 
     @RequestMapping(value = CREATE_SERVICE_INSTANCE_URL, method = POST,
-        produces = APPLICATION_JSON_VALUE) public CcNewServiceInstance createServiceInstance(
+        produces = APPLICATION_JSON_VALUE) public CcExtendedServiceInstance createServiceInstance(
         @RequestBody CcNewServiceInstance serviceInstance) {
-        return ccClient.createServiceInstance(serviceInstance);
+        return ccClient.createServiceInstance(serviceInstance).toBlocking().single();
     }
 
     @RequestMapping(value = DELETE_SERVICE_INSTANCE_URL, method = DELETE)

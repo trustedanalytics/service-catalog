@@ -22,6 +22,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import org.trustedanalytics.cloud.cc.api.CcExtendedServiceInstance;
 import org.trustedanalytics.cloud.cc.api.CcNewServiceInstance;
 import org.trustedanalytics.cloud.cc.api.CcOperations;
 import org.trustedanalytics.cloud.cc.api.CcSummary;
@@ -35,6 +36,8 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import rx.Observable;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -78,10 +81,10 @@ public class ServiceInstancesControllerTest {
         ArgumentCaptor<CcNewServiceInstance> captor = ArgumentCaptor.forClass(
             CcNewServiceInstance.class);
         CcNewServiceInstance passed = mock(CcNewServiceInstance.class);
-        CcNewServiceInstance returned = mock(CcNewServiceInstance.class);
-        when(ccClient.createServiceInstance(any(CcNewServiceInstance.class))).thenReturn(returned);
+        CcExtendedServiceInstance returned = mock(CcExtendedServiceInstance.class);
+        when(ccClient.createServiceInstance(any(CcNewServiceInstance.class))).thenReturn(Observable.just(returned));
 
-        CcNewServiceInstance result = sut.createServiceInstance(passed);
+        CcExtendedServiceInstance result = sut.createServiceInstance(passed);
 
         verify(ccClient).createServiceInstance(captor.capture());
         assertEquals(passed, captor.getValue());
