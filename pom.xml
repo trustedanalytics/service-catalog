@@ -13,6 +13,11 @@
     <dependencies>
         <dependency>
             <groupId>org.trustedanalytics</groupId>
+            <artifactId>rest-error-handling</artifactId>
+            <version>0.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.trustedanalytics</groupId>
             <artifactId>cf-client</artifactId>
             <version>0.4.4</version>
         </dependency>

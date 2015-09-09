@@ -15,71 +15,66 @@
  */
 package org.trustedanalytics.servicecatalog.service;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NOT_IMPLEMENTED;
+
 import org.trustedanalytics.cloud.cc.api.CcOutputBadFormatted;
+import org.trustedanalytics.utils.errorhandling.ErrorLogger;
 
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.client.HttpStatusCodeException;
 
 import java.io.IOException;
-
-import javax.servlet.http.HttpServletResponse;
-
 import java.util.HashMap;
 import java.util.Map;
-
+import javax.servlet.http.HttpServletResponse;
 
 @ControllerAdvice
 public class RestErrorHandler {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(RestErrorHandler.class);
 
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(IllegalArgumentException.class)
-    public void illegalArgument(Exception e) {
-        LOGGER.error(HttpStatus.BAD_REQUEST.getReasonPhrase(), e);
-
+    public void illegalArgument(Exception e, HttpServletResponse response) throws IOException {
+        ErrorLogger.logAndSendErrorResponse(LOGGER, response, BAD_REQUEST, e);
     }
 
-    @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
     @ExceptionHandler(UnsupportedOperationException.class)
-    public void unsupportedOperation(Exception e) {
-        LOGGER.error(HttpStatus.NOT_IMPLEMENTED.getReasonPhrase(), e);
-
+    public void unsupportedOperation(Exception e, HttpServletResponse response) throws IOException {
+        ErrorLogger.logAndSendErrorResponse(LOGGER, response, NOT_IMPLEMENTED, e);
     }
 
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(CcOutputBadFormatted.class)
-    public void ccOutputBadFormatted(Exception e) {
-        LOGGER.error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), e);
+    public void ccOutputBadFormatted(Exception e, HttpServletResponse response) throws IOException {
+        ErrorLogger.logAndSendErrorResponse(LOGGER, response, INTERNAL_SERVER_ERROR, e);
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public void badRequest(Exception e) {
-        LOGGER.error(HttpStatus.BAD_REQUEST.getReasonPhrase(), e);
+    public void badRequest(Exception e, HttpServletResponse response) throws IOException {
+        ErrorLogger.logAndSendErrorResponse(LOGGER, response, BAD_REQUEST, e);
     }
 
     @ExceptionHandler(HttpStatusCodeException.class)
-    public void handleHttpStatusCodeException(HttpStatusCodeException e,
-        HttpServletResponse response) throws IOException {
+    public void handleHttpStatusCodeException(HttpStatusCodeException e, HttpServletResponse response) throws IOException {
         String message = extractErrorFromJSON(e.getResponseBodyAsString());
         message = StringUtils.isNotBlank(message) ? message : e.getMessage();
-        LOGGER.error(message, e);
-        response.sendError(e.getStatusCode().value(), message);
+        ErrorLogger.logAndSendErrorResponse(LOGGER, response, e.getStatusCode(), message, e);
     }
 
-    private String extractErrorFromJSON(String json){
+    @ExceptionHandler(Exception.class)
+    public void handleException(Exception e, HttpServletResponse response) throws Exception {
+        org.trustedanalytics.utils.errorhandling.RestErrorHandler defaultErrorHandler = new org.trustedanalytics.utils.errorhandling.RestErrorHandler();
+        defaultErrorHandler.handleException(e, response);
+    }
+
+    private static String extractErrorFromJSON(String json){
         Map<String, String> map = new HashMap<>();
         try {
             ObjectMapper mapper = new ObjectMapper();
