@@ -1,7 +1,7 @@
 ---
 applications:
 - name: service-catalog
-  memory: 512M
+  memory: 1G
   instances: 1
   host: service-catalog
   path: target/service-catalog-${version}.jar
@@ -9,4 +9,4 @@ applications:
   - sso
   env:
     SPRING_PROFILES_ACTIVE: "cloud"
-    JBP_CONFIG_OPEN_JDK_JRE: "[memory_sizes: {metaspace: 80m..}]"
+    JBP_CONFIG_OPEN_JDK_JRE: "[memory_sizes: {metaspace: 128m..}]"
