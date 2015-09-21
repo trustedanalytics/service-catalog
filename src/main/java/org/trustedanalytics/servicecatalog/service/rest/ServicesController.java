@@ -29,13 +29,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
+
+import rx.Observable;
 
 @RestController
 public class ServicesController {
 
     public static final String GET_ALL_SERVICES_URL = "/rest/services";
     public static final String GET_SERVICE_PLAN_URL = "/rest/service_plan";
+    public static final String GET_SERVICE_PLANS_URL = "/rest/services/{label}/service_plans";
     public static final String GET_FILTERED_SERVICES_URL = "/rest/services?space={space}";
     public static final String GET_SERVICE_DETAILS_URL = "/rest/services/{service}";
 
@@ -64,6 +69,23 @@ public class ServicesController {
 
         servicePlanResponse.setGuid(servicePlan.getMetadata().getGuid());
         return servicePlanResponse;
+    }
+
+    @RequestMapping(value = GET_SERVICE_PLANS_URL, method = GET, produces = APPLICATION_JSON_VALUE)
+    public Collection<CcExtendedServicePlan> getServicePlans(@PathVariable String label) {
+        return ccClient.getExtendedServices()
+            .filter(service -> label.equals(service.getEntity().getLabel()))
+            .firstOrDefault(null)
+            .flatMap(service -> {
+                if(service != null) {
+                    return ccClient.getExtendedServicePlans(service.getMetadata().getGuid());
+                } else {
+                    return Observable.empty();
+                }
+            })
+            .toList()
+            .toBlocking()
+            .single();
     }
 
     @RequestMapping(value = GET_ALL_SERVICES_URL, method = GET, produces = APPLICATION_JSON_VALUE)
