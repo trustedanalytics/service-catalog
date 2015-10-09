@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>service-catalog</artifactId>
-    <version>0.4.4</version>
+    <version>0.4.5</version>
 
     <parent>
         <groupId>org.trustedanalytics</groupId>
@@ -19,7 +19,7 @@
         <dependency>
             <groupId>org.trustedanalytics</groupId>
             <artifactId>cf-client</artifactId>
-            <version>0.4.4</version>
+            <version>0.4.10</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -96,6 +96,12 @@
             <artifactId>cloudfoundry-client-lib</artifactId>
             <version>1.0.5</version>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.16.6</version>
+            <scope>provided</scope>
+        </dependency>
 
         <dependency>
             <groupId>junit</groupId>
@@ -107,7 +113,7 @@
     <properties>
         <start-class>org.trustedanalytics.servicecatalog.Application</start-class>
     	<jacoco-measurement-instructions>0.2204</jacoco-measurement-instructions>
-        <jacoco-measurement-branches>0.2403</jacoco-measurement-branches>
+        <jacoco-measurement-branches>0.114</jacoco-measurement-branches>
         <jacoco-measurement-lines>0.2521</jacoco-measurement-lines>
         <jacoco-measurement-classes>0.4761</jacoco-measurement-classes>
     </properties>

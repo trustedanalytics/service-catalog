@@ -41,6 +41,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import rx.Observable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -96,10 +97,11 @@ public class ServicesControllerTest {
     @Test
     public void getServices_spaceSpecified_returnServicesFromCloudfoundry() {
         UUID spaceId = UUID.fromString("8efd7c5c-d83c-4786-b399-b7bd548839e1");
-        String expectedServices = "list of services returned by ccClient";
-        when(ccClient.getServices(any(UUID.class))).thenReturn(expectedServices);
+        List<CcExtendedService> expectedServices =
+            Arrays.asList(new CcExtendedService(), new CcExtendedService());
+        when(ccClient.getServices(any(UUID.class))).thenReturn(Observable.from(expectedServices));
 
-        String services = sut.getServices(spaceId);
+        Collection<CcExtendedService> services = sut.getServices(spaceId);
 
         assertEquals(expectedServices, services);
 
@@ -109,12 +111,12 @@ public class ServicesControllerTest {
     @Test
     public void getService_returnServiceFromCloudfoundry() {
         UUID serviceId = UUID.fromString("8efd7c5c-d83c-4786-b399-b7bd548839e2");
-        String expectedServiceData = "list of services returned by ccClient";
-        when(ccClient.getService(any(UUID.class))).thenReturn(expectedServiceData);
+        CcExtendedService expectedService = new CcExtendedService();
+        when(ccClient.getService(any(UUID.class))).thenReturn(Observable.just(expectedService));
 
-        String serviceData = sut.getService(serviceId);
+        CcExtendedService serviceData = sut.getService(serviceId);
 
-        assertEquals(expectedServiceData, serviceData);
+        assertEquals(expectedService, serviceData);
     }
 
     @Test
@@ -162,7 +164,7 @@ public class ServicesControllerTest {
     private CcExtendedServicePlan createServicePlan(String name, UUID serviceGuid) {
         final CcExtendedServicePlanEntity entity = new CcExtendedServicePlanEntity();
         entity.setName(name);
-        entity.setServiceGuid(serviceGuid.toString());
+        entity.setServiceGuid(serviceGuid);
 
         final CcMetadata metadata = new CcMetadata();
         metadata.setGuid(UUID.randomUUID());

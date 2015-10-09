@@ -18,6 +18,7 @@ package org.trustedanalytics.servicecatalog.utils;
 import org.trustedanalytics.cloud.cc.api.CcApp;
 import org.trustedanalytics.cloud.cc.api.CcAppState;
 import org.trustedanalytics.cloud.cc.api.CcServiceInstance;
+import org.trustedanalytics.cloud.cc.api.CcServicePlan;
 import org.trustedanalytics.cloud.cc.api.CcSummary;
 import org.trustedanalytics.servicecatalog.service.model.App;
 import org.trustedanalytics.servicecatalog.service.model.ServiceInstance;
@@ -59,13 +60,13 @@ public class ServiceInstancesTestsResources {
         Collection<ServiceInstance> allNotFilteredServiceInstances = new LinkedList<>();
             allNotFilteredServiceInstances.add(
                 new ServiceInstance(UUID.fromString(instance1Guid),
-                    instance1Name, "shared", UUID.fromString(serviceFirstGuid), instanceEmptyList));
+                    instance1Name, new CcServicePlan(), UUID.fromString(serviceFirstGuid), instanceEmptyList));
             allNotFilteredServiceInstances.add(
                 new ServiceInstance(UUID.fromString(instance2Guid),
-                    instance2Name, "free", UUID.fromString(serviceFirstGuid), instance2List));
+                    instance2Name, new CcServicePlan(), UUID.fromString(serviceFirstGuid), instance2List));
             allNotFilteredServiceInstances.add(
                 new ServiceInstance(UUID.fromString(instance3Guid),
-                    instance3Name, "shared", UUID.fromString(serviceSecondGuid), instance3List));
+                    instance3Name, new CcServicePlan(), UUID.fromString(serviceSecondGuid), instance3List));
             allNotFilteredServiceInstances.add(
                 new ServiceInstance(UUID.fromString(instance4Guid),
                     instance4Name, null, null, instanceEmptyList));
@@ -84,10 +85,10 @@ public class ServiceInstancesTestsResources {
         List<ServiceInstance> allFilteredServiceInstances = new LinkedList<>();
             allFilteredServiceInstances.add(
                 new ServiceInstance(UUID.fromString(instance1Guid),
-                    instance1Name, "shared", UUID.fromString(serviceFirstGuid), instanceEmptyList));
+                    instance1Name, new CcServicePlan(), UUID.fromString(serviceFirstGuid), instanceEmptyList));
             allFilteredServiceInstances.add(
                 new ServiceInstance(UUID.fromString(instance2Guid),
-                    instance2Name, "free", UUID.fromString(serviceFirstGuid), instance2List));
+                    instance2Name, new CcServicePlan(), UUID.fromString(serviceFirstGuid), instance2List));
         // @formatter:on
 
         return allFilteredServiceInstances;

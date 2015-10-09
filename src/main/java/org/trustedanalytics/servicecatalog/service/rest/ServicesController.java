@@ -89,17 +89,19 @@ public class ServicesController {
     }
 
     @RequestMapping(value = GET_ALL_SERVICES_URL, method = GET, produces = APPLICATION_JSON_VALUE)
-    public String getServices(@RequestParam(required = false) UUID space) {
+    public Collection<CcExtendedService> getServices(@RequestParam(required = false) UUID space) {
         if(space == null) {
             throw new UnsupportedOperationException("Handling not filtered request, not implemented yet");
         }
-        return ccClient.getServices(space);
+        return ccClient.getServices(space)
+            .toList().toBlocking().single();
     }
 
     @RequestMapping(value = GET_SERVICE_DETAILS_URL, method = GET,
         produces = APPLICATION_JSON_VALUE)
-    public String getService(@PathVariable UUID service) {
-        return ccClient.getService(service);
+    public CcExtendedService getService(@PathVariable UUID service) {
+        return ccClient.getService(service)
+            .toBlocking().single();
     }
 
 }

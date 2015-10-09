@@ -20,22 +20,26 @@ import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
-import org.trustedanalytics.cloud.cc.api.CcExtendedServiceInstance;
-import org.trustedanalytics.cloud.cc.api.CcNewServiceInstance;
-import org.trustedanalytics.cloud.cc.api.CcOperations;
-import org.trustedanalytics.cloud.cc.api.CcSummary;
-import org.trustedanalytics.servicecatalog.formattranslator.FormatTranslator;
-import org.trustedanalytics.servicecatalog.service.model.ServiceInstance;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.trustedanalytics.cloud.cc.api.CcExtendedServiceInstance;
+import org.trustedanalytics.cloud.cc.api.CcNewServiceInstance;
+import org.trustedanalytics.cloud.cc.api.CcOperations;
+import org.trustedanalytics.cloud.cc.api.CcSummary;
+import org.trustedanalytics.servicecatalog.formattranslator.FormatTranslator;
+import org.trustedanalytics.servicecatalog.service.model.Service;
+import org.trustedanalytics.servicecatalog.service.model.ServiceInstance;
+import org.trustedanalytics.servicecatalog.service.model.ServiceKey;
+import rx.Observable;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController public class ServiceInstancesController {
 
@@ -44,11 +48,15 @@ import java.util.UUID;
         "/rest/service_instances?space={space}";
     public static final String CREATE_SERVICE_INSTANCE_URL = "/rest/service_instances";
     public static final String DELETE_SERVICE_INSTANCE_URL = "/rest/service_instances/{instance}";
+    public static final String SERVICE_INSTANCES_SUMMARY_URL = "/rest/service_instances/summary";
 
     private final CcOperations ccClient;
+    private final ServiceInstancesControllerHelpers helpers;
 
-    @Autowired public ServiceInstancesController(CcOperations ccClient) {
+    @Autowired public ServiceInstancesController(CcOperations ccClient,
+        ServiceInstancesControllerHelpers helpers) {
         this.ccClient = ccClient;
+        this.helpers = helpers;
     }
 
     @RequestMapping(value = GET_ALL_SERVICE_INSTANCES_URL, method = GET,
@@ -73,5 +81,30 @@ import java.util.UUID;
     @RequestMapping(value = DELETE_SERVICE_INSTANCE_URL, method = DELETE)
     public void deleteServiceInstance(@PathVariable UUID instance) {
         ccClient.deleteServiceInstance(instance);
+    }
+
+    @RequestMapping(value = SERVICE_INSTANCES_SUMMARY_URL, method = GET,
+        produces = APPLICATION_JSON_VALUE)
+    public Collection<Service> getServiceKeysSummary(@RequestParam("space") UUID spaceId,
+        @RequestParam(value = "service_keys", required = false) boolean fetchKeys) {
+        return getSpaceSummary(spaceId, fetchKeys);
+    }
+
+    private List<Service> getSpaceSummary(UUID spaceId, boolean fetchKeys) {
+        List<ServiceInstance> instances = helpers.getServiceInstances(spaceId);
+
+        if(fetchKeys) {
+            Observable<ServiceKey> serviceKeys = helpers.getServiceKeys();
+            helpers.mergeServiceKeys(instances, serviceKeys);
+        }
+
+        List<Service> brokers = helpers.getServices();
+        helpers.mergeInstances(brokers, instances);
+
+        brokers = brokers.stream()
+            .filter(b -> !b.getInstances().isEmpty())
+            .collect(Collectors.toList());
+
+        return brokers;
     }
 }

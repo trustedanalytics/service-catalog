@@ -19,28 +19,35 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.trustedanalytics.servicecatalog.unit.ServiceInstancesTestHelpers.getServiceInstances;
+import static org.trustedanalytics.servicecatalog.unit.ServiceInstancesTestHelpers.getServiceKeys;
+import static org.trustedanalytics.servicecatalog.unit.ServiceInstancesTestHelpers.getServices;
 
-import org.trustedanalytics.cloud.cc.api.CcExtendedServiceInstance;
-import org.trustedanalytics.cloud.cc.api.CcNewServiceInstance;
-import org.trustedanalytics.cloud.cc.api.CcOperations;
-import org.trustedanalytics.cloud.cc.api.CcSummary;
-import org.trustedanalytics.servicecatalog.service.model.ServiceInstance;
-import org.trustedanalytics.servicecatalog.service.rest.ServiceInstancesController;
-import org.trustedanalytics.servicecatalog.utils.ServiceInstancesTestsResources;
-
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
+import org.trustedanalytics.cloud.cc.api.CcExtendedServiceInstance;
+import org.trustedanalytics.cloud.cc.api.CcNewServiceInstance;
+import org.trustedanalytics.cloud.cc.api.CcOperations;
+import org.trustedanalytics.cloud.cc.api.CcSummary;
+import org.trustedanalytics.servicecatalog.service.model.Service;
+import org.trustedanalytics.servicecatalog.service.model.ServiceInstance;
+import org.trustedanalytics.servicecatalog.service.rest.ServiceInstancesController;
+import org.trustedanalytics.servicecatalog.service.rest.ServiceInstancesControllerHelpers;
+import org.trustedanalytics.servicecatalog.utils.ServiceInstancesTestsResources;
 import rx.Observable;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ServiceInstancesControllerTest {
@@ -54,12 +61,15 @@ public class ServiceInstancesControllerTest {
     @Mock
     private CcOperations ccClient;
 
+    @Mock
+    private ServiceInstancesControllerHelpers controllerHelpers;
+
     @Before
     public void setUp() {
         spaceSummaryReturnedByCcAdapter =
             ServiceInstancesTestsResources.spaceSummaryReturnedByCcAdapter();
         when(ccClient.getSpaceSummary(any(UUID.class))).thenReturn(spaceSummaryReturnedByCcAdapter);
-        sut = new ServiceInstancesController(ccClient);
+        sut = new ServiceInstancesController(ccClient, controllerHelpers);
     }
 
     @Test
@@ -72,7 +82,12 @@ public class ServiceInstancesControllerTest {
         Collection<ServiceInstance> serviceInstances =
             sut.getAllServiceInstances(SPACE_GUID, null);
 
-        assertEquals(allNotFilteredServiceInstances, serviceInstances);
+        List<UUID> expectedGuids =
+            allNotFilteredServiceInstances.stream().map(i -> i.getGuid()).collect(
+                Collectors.toList());
+        List<UUID> resultGuids =
+            serviceInstances.stream().map(i -> i.getGuid()).collect(Collectors.toList());
+        assertEquals(expectedGuids, resultGuids);
         verify(ccClient).getSpaceSummary(SPACE_GUID);
     }
 
@@ -99,5 +114,39 @@ public class ServiceInstancesControllerTest {
         sut.deleteServiceInstance(serviceGuid);
 
         verify(ccClient).deleteServiceInstance(serviceGuid);
+    }
+
+    @Test
+    public void getServiceInstancesSummary_fetchKeysFalse_getSummaryWithoutKeys() {
+        when(controllerHelpers.getServiceKeys()).thenReturn(getServiceKeys(3));
+        List<ServiceInstance> instances = getServiceInstances();
+        when(controllerHelpers.getServiceInstances(any(UUID.class))).thenReturn(instances);
+        List<Service> services = getServices();
+        when(controllerHelpers.getServices()).thenReturn(services);
+        UUID spaceId = UUID.randomUUID();
+
+        Collection<Service> result = sut.getServiceKeysSummary(spaceId, false);
+
+        verify(controllerHelpers, never()).getServiceKeys();
+        verify(controllerHelpers).getServices();
+        verify(controllerHelpers).getServiceInstances(spaceId);
+        Assert.assertEquals(2, result.size());
+    }
+
+    @Test
+    public void getServiceInstancesSummary_fetchKeysTrue_getSummaryWithKeys() {
+        when(controllerHelpers.getServiceKeys()).thenReturn(getServiceKeys(3));
+        List<ServiceInstance> instances = getServiceInstances();
+        when(controllerHelpers.getServiceInstances(any(UUID.class))).thenReturn(instances);
+        List<Service> services = getServices();
+        when(controllerHelpers.getServices()).thenReturn(services);
+        UUID spaceId = UUID.randomUUID();
+
+        Collection<Service> result = sut.getServiceKeysSummary(spaceId, true);
+
+        verify(controllerHelpers).getServiceKeys();
+        verify(controllerHelpers).getServices();
+        verify(controllerHelpers).getServiceInstances(spaceId);
+        Assert.assertEquals(2, result.size());
     }
 }
