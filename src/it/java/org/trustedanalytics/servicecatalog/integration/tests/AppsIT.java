@@ -191,7 +191,7 @@ public class AppsIT {
         CcAppState state = CcAppState.STARTED;
         CcAppStatus status = new CcAppStatus(state);
         Map<String, Object> serviceRequest = new HashMap<String, Object>();
-        serviceRequest.put("state", status.getName());
+        serviceRequest.put("state", status.getState());
 
         doNothing().when(restTemplate).put(anyString(), any(), anyMap());
 

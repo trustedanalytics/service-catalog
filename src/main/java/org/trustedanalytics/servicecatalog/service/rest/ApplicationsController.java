@@ -77,11 +77,11 @@ public class ApplicationsController {
 
     @RequestMapping(value = RESTAGE_APP_URL, method = POST)
     public void restageApp(@PathVariable UUID app, @RequestBody CcAppStatus status) {
-        if (status.getName() == null) {
+        if (status.getState() == null) {
             throw new IllegalArgumentException();
         }
 
-        switch (status.getName()) {
+        switch (status.getState()) {
             case RESTAGING:
                 applicationsService.restageApp(app);
                 break;
