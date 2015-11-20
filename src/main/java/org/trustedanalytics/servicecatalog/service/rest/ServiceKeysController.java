@@ -16,10 +16,12 @@
 package org.trustedanalytics.servicecatalog.service.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,10 +30,12 @@ import org.trustedanalytics.cloud.cc.api.CcOperations;
 import org.trustedanalytics.servicecatalog.service.model.ServiceKey;
 
 import java.util.Collection;
+import java.util.UUID;
 
 @RestController public class ServiceKeysController {
 
     public static final String GET_ALL_SERVICE_KEYS_URL = "/rest/service_keys";
+    public static final String SERVICE_KEY_URL = "/rest/service_keys/{guid}";
 
     private final CcOperations ccClient;
 
@@ -50,5 +54,11 @@ import java.util.Collection;
         produces = APPLICATION_JSON_VALUE)
     public ServiceKey createServiceKey(@RequestBody CcNewServiceKey serviceKey) {
         return ServiceKey.from(ccClient.createServiceKey(serviceKey).toBlocking().first());
+    }
+
+    @RequestMapping(value = SERVICE_KEY_URL, method = DELETE,
+            produces = APPLICATION_JSON_VALUE)
+    public void deleteServiceKey(@PathVariable UUID guid) {
+        ccClient.deleteServiceKey(guid);
     }
 }
