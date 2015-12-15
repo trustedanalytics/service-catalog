@@ -16,9 +16,11 @@
 package org.trustedanalytics.servicecatalog.service;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_IMPLEMENTED;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.trustedanalytics.cloud.cc.api.CcOutputBadFormatted;
 import org.trustedanalytics.utils.errorhandling.ErrorLogger;
 
@@ -72,6 +74,11 @@ public class RestErrorHandler {
     public void handleException(Exception e, HttpServletResponse response) throws Exception {
         org.trustedanalytics.utils.errorhandling.RestErrorHandler defaultErrorHandler = new org.trustedanalytics.utils.errorhandling.RestErrorHandler();
         defaultErrorHandler.handleException(e, response);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public void handleFeignException(AccessDeniedException e, HttpServletResponse response) throws IOException {
+        ErrorLogger.logAndSendErrorResponse(LOGGER, response, FORBIDDEN, e.getMessage(), e);
     }
 
     private static String extractErrorFromJSON(String json){
