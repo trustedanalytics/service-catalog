@@ -19,11 +19,12 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_IMPLEMENTED;
+import static org.springframework.http.HttpStatus.CONFLICT;
 
 import org.springframework.security.access.AccessDeniedException;
 import org.trustedanalytics.cloud.cc.api.CcOutputBadFormatted;
+import org.trustedanalytics.servicecatalog.service.rest.NameAlreadyInUseException;
 import org.trustedanalytics.utils.errorhandling.ErrorLogger;
-
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
@@ -61,6 +62,11 @@ public class RestErrorHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public void badRequest(Exception e, HttpServletResponse response) throws IOException {
         ErrorLogger.logAndSendErrorResponse(LOGGER, response, BAD_REQUEST, e);
+    }
+
+    @ExceptionHandler(NameAlreadyInUseException.class)
+    public void nameAlreadyInUse(Exception e, HttpServletResponse response) throws IOException {
+        ErrorLogger.logAndSendErrorResponse(LOGGER, response, CONFLICT, e.getMessage(), e);
     }
 
     @ExceptionHandler(HttpStatusCodeException.class)

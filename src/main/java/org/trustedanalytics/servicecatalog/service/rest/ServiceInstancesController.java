@@ -30,6 +30,7 @@ import org.trustedanalytics.cloud.cc.api.CcExtendedServiceInstance;
 import org.trustedanalytics.cloud.cc.api.CcNewServiceInstance;
 import org.trustedanalytics.cloud.cc.api.CcOperations;
 import org.trustedanalytics.cloud.cc.api.CcSummary;
+import org.trustedanalytics.cloud.cc.api.CcServiceInstance;
 import org.trustedanalytics.servicecatalog.formattranslator.FormatTranslator;
 import org.trustedanalytics.servicecatalog.service.model.Service;
 import org.trustedanalytics.servicecatalog.service.model.ServiceInstance;
@@ -75,6 +76,15 @@ import java.util.stream.Collectors;
     @RequestMapping(value = CREATE_SERVICE_INSTANCE_URL, method = POST,
         produces = APPLICATION_JSON_VALUE) public CcExtendedServiceInstance createServiceInstance(
         @RequestBody CcNewServiceInstance serviceInstance) {
+        CcSummary summary = ccClient.getSpaceSummary(serviceInstance.getSpaceGuid());
+        Boolean isNameAlreadyUsed= summary.getServiceInstances()
+                .stream()
+                .filter(o -> o.getName().equals(serviceInstance.getName()))
+                .findAny()
+                .isPresent();
+        if(isNameAlreadyUsed) {
+            throw new NameAlreadyInUseException("Provided name " + serviceInstance.getName() + " is already in use by other instance.");
+        }
         return ccClient.createServiceInstance(serviceInstance).toBlocking().single();
     }
 
