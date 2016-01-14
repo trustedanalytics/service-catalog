@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>service-catalog</artifactId>
-    <version>0.4.13</version>
+    <version>0.4.14</version>
 
     <parent>
         <groupId>org.trustedanalytics</groupId>
@@ -172,11 +172,11 @@
                 <artifactId>license-maven-plugin</artifactId>
                 <version>2.6</version>
                 <configuration>
-                    <header>license/license_header.txt</header> 
+                    <header>license/license_header.txt</header>
                     <includes>
                         <include>src/**/*.java</include>
                         <include>license/*.sh</include>
-                    </includes>                                   
+                    </includes>
                     <mapping>
                         <java>JAVADOC_STYLE</java>
                         <sh>SCRIPT_STYLE</sh>

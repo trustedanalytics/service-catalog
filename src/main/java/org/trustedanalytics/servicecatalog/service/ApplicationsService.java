@@ -131,11 +131,6 @@ public class ApplicationsService {
         if(summary.getRunningInstances() != null) {
             //Cloud foundry sometimes returns running_instances=-1 when the app is staging
             summary.setRunningInstances(Math.max(0, summary.getRunningInstances()));
-
-            //cloud foundry returns state STARTED even if there are no running instances
-            if (summary.getRunningInstances() == 0 && CcAppState.STARTED.toString().equals(summary.getState())) {
-                summary.setState(CcAppState.STOPPED.toString());
-            }
         }
     }
 
@@ -145,12 +140,6 @@ public class ApplicationsService {
     private void fixAppInfo(CcApp app) {
         //Cloud foundry sometimes returns running_instances=-1 when the app is staging
         app.setRunningInstances(Math.max(0, app.getRunningInstances()));
-
-        //cloud foundry returns state STARTED even if there are no running instances
-        if (app.getRunningInstances() == 0 && CcAppState.STARTED == app.getState()) {
-            app.setState(CcAppState.STOPPED);
-        }
-
     }
 
     /**
