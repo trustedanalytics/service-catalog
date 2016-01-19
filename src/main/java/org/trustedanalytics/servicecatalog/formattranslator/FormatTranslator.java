@@ -21,13 +21,7 @@ import org.trustedanalytics.cloud.cc.api.CcSummary;
 import org.trustedanalytics.servicecatalog.service.model.App;
 import org.trustedanalytics.servicecatalog.service.model.ServiceInstance;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class FormatTranslator {
@@ -40,7 +34,7 @@ public class FormatTranslator {
 
         Collection<CcApp> apps = ccSpaceSummary.getApps();
         Collection<CcServiceInstance> servInstances = ccSpaceSummary.getServiceInstances();
-
+        Objects.requireNonNull(apps, "Apps can not be null");
         Map<String, Collection<App>> appsGroupedByBoundServiceName =
             groupAppGuidsByBoundServiceNames(apps);
 
@@ -76,8 +70,9 @@ public class FormatTranslator {
         for (CcApp app : apps) {
             UUID guid = app.getGuid();
             String name = app.getName();
+            Objects.requireNonNull(guid);
+            Objects.requireNonNull(name);
             Collection<String> serviceNames = app.getServiceNames();
-
             if (serviceNames != null) {
                 for (String service : serviceNames) {
                     addAppToMap(groupedApps, new App(guid, name), service);
