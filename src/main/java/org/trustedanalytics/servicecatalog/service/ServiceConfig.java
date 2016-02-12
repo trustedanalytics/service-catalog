@@ -18,11 +18,19 @@ package org.trustedanalytics.servicecatalog.service;
 import static org.springframework.context.annotation.ScopedProxyMode.TARGET_CLASS;
 import static org.springframework.web.context.WebApplicationContext.SCOPE_REQUEST;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
+import org.springframework.security.oauth2.client.OAuth2ClientContext;
+import org.springframework.security.oauth2.client.OAuth2RestTemplate;
+import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
+import org.springframework.security.oauth2.client.token.DefaultAccessTokenRequest;
+import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsAccessTokenProvider;
+import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
 import org.springframework.web.client.RestTemplate;
 
 import org.trustedanalytics.cloud.auth.OAuth2TokenRetriever;
@@ -50,5 +58,26 @@ public class ServiceConfig {
     @Bean
     protected OAuth2TokenRetriever tokenRetriever() {
         return new OAuth2TokenRetriever();
+    }
+
+    @Bean
+    public OAuth2ClientContext clientContext() {
+        return new DefaultOAuth2ClientContext(new DefaultAccessTokenRequest());
+    }
+
+    @Bean
+    @ConfigurationProperties("spring.oauth2.client")
+    public ClientCredentialsResourceDetails clientCredentials() {
+        return new ClientCredentialsResourceDetails();
+    }
+
+    @Bean
+    @Scope(value = SCOPE_REQUEST, proxyMode = TARGET_CLASS)
+    public OAuth2RestTemplate clientRestTemplate(OAuth2ClientContext clientContext,
+                                                 ClientCredentialsResourceDetails clientCredentials) {
+        OAuth2RestTemplate template = new OAuth2RestTemplate(clientCredentials, clientContext);
+        ClientCredentialsAccessTokenProvider provider = new ClientCredentialsAccessTokenProvider();
+        template.setAccessTokenProvider(provider);
+        return template;
     }
 }

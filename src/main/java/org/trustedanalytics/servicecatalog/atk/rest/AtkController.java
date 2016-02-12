@@ -44,8 +44,8 @@ public class AtkController {
     private final CcOperations client;
 
     @Autowired
-    public AtkController(CcOperations client) {
-        this.client = client;
+    public AtkController(CcOperations ccClient) {
+        this.client = ccClient;
     }
 
     @RequestMapping(value = "/rest/atk/scoring-engine", method = POST, produces = APPLICATION_JSON_VALUE)

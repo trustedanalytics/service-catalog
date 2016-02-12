@@ -27,7 +27,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import org.trustedanalytics.cloud.cc.api.*;
+import org.trustedanalytics.servicecatalog.service.CatalogOperations;
 import org.trustedanalytics.servicecatalog.service.rest.ServicesController;
+import org.trustedanalytics.servicecatalog.service.model.ServiceRegistrationRequest;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -54,9 +56,15 @@ public class ServicesControllerTest {
     @Mock
     private CcOperations ccClient;
 
+    @Mock
+    private CcOperations privilegedClient;
+
+    @Mock
+    private CatalogOperations catalogClient;
+
     @Before
     public void setUp() {
-        sut = new ServicesController(ccClient);
+        sut = new ServicesController(ccClient, privilegedClient, catalogClient);
     }
 
     @Test
@@ -173,5 +181,60 @@ public class ServicesControllerTest {
         plan.setEntity(entity);
         plan.setMetadata(metadata);
         return plan;
+    }
+
+    @Test
+    public void registerApplication_returnPlanVisibilityFromCloudfoundry() {
+        UUID guid = UUID.randomUUID();
+
+        Collection<CcExtendedService> expectedExtendedServices =
+                new ArrayList<CcExtendedService>() {{
+                }};
+        CcExtendedService extendedService = new CcExtendedService();
+        extendedService.setMetadata(new CcMetadata());
+        extendedService.getMetadata().setGuid(guid);
+        CcExtendedServiceEntity entity = new CcExtendedServiceEntity();
+        entity.setLabel("label");
+        extendedService.setEntity(entity);
+        expectedExtendedServices.add(extendedService);
+
+        Collection<CcExtendedServicePlan> expectedExtendedServicePlan =
+                new ArrayList<CcExtendedServicePlan>() {{
+                }};
+        CcExtendedServicePlan extendedServicePlan = new CcExtendedServicePlan();
+        extendedServicePlan.setEntity(new CcExtendedServicePlanEntity());
+        extendedServicePlan.getEntity().setName("plan");
+        extendedServicePlan.setMetadata(new CcMetadata());
+        extendedServicePlan.getMetadata().setGuid(guid);
+        expectedExtendedServicePlan.add(extendedServicePlan);
+
+        when(privilegedClient.getExtendedServices()).thenReturn(Observable.from(expectedExtendedServices));
+        when(privilegedClient.getExtendedServicePlans(any()))
+                .thenReturn(Observable.from(expectedExtendedServicePlan));
+
+        ServiceRegistrationRequest request = new ServiceRegistrationRequest();
+        request.setName("label");
+
+        when(catalogClient.register(request)).thenReturn(null);
+        Collection<CcOrg> expectedCcOrgs =
+                new ArrayList<CcOrg>() {{
+                }};
+        CcOrg org = new CcOrg(UUID.randomUUID(), "org");
+        expectedCcOrgs.add(org);
+        when(ccClient.getOrgs()).thenReturn(Observable.from(expectedCcOrgs));
+
+        Collection<CcPlanVisibility> expectedVisibility =
+                new ArrayList<CcPlanVisibility>() {{
+                }};
+        CcPlanVisibility visibility = new CcPlanVisibility();
+        visibility.setMetadata(new CcMetadata());
+        visibility.getMetadata().setGuid(guid);
+        expectedVisibility.add(visibility);
+        when(privilegedClient.setExtendedServicePlanVisibility(extendedServicePlan.getMetadata().getGuid(),
+                org.getGuid())).thenReturn(Observable.from(expectedVisibility));
+
+        Collection<CcPlanVisibility> plans = sut.registerApplication(request);
+
+        assertEquals(plans, expectedVisibility);
     }
 }

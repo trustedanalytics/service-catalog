@@ -6,6 +6,12 @@ security:
   ignored: /open,/sdoc.jsp,/*.js,/api-docs,/api-docs/default/*,/images/*,/lib/*,/css/*
 
 spring.oauth2:
+  client:
+    accessTokenUri: ${vcap.services.sso.credentials.tokenUri}
+    userAuthorizationUri: ${vcap.services.sso.credentials.authorizationUri}
+    clientId: ${vcap.services.sso.credentials.clientId}
+    clientSecret: ${vcap.services.sso.credentials.clientSecret}
+
   resource:
     id: cloud_controller
     jwt:
@@ -21,3 +27,8 @@ cf:
 
 endpoints.enabled: false
 endpoints.health.enabled: true
+
+broker:
+  user: ${vcap.services.marketplace-register-service.credentials.username}
+  pass: ${vcap.services.marketplace-register-service.credentials.password}
+  url: ${vcap.services.marketplace-register-service.credentials.applicationBrokerUrl}

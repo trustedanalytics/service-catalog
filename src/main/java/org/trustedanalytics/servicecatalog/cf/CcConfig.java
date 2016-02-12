@@ -18,6 +18,9 @@ package org.trustedanalytics.servicecatalog.cf;
 import static org.springframework.context.annotation.ScopedProxyMode.INTERFACES;
 import static org.springframework.web.context.WebApplicationContext.SCOPE_REQUEST;
 
+import feign.Feign;
+import feign.auth.BasicAuthRequestInterceptor;
+import feign.jackson.JacksonEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,10 +29,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.web.client.RestTemplate;
 import org.trustedanalytics.cloud.auth.OAuth2TokenRetriever;
 import org.trustedanalytics.cloud.cc.FeignClient;
 import org.trustedanalytics.cloud.cc.api.CcOperations;
+import org.trustedanalytics.servicecatalog.service.CatalogOperations;
 import org.trustedanalytics.servicecatalog.service.StashErrorDecoder;
 
 
@@ -56,5 +61,32 @@ public class CcConfig {
         return new FeignClient(apiBaseUrl, builder -> builder
             .errorDecoder(stashErrorDecoder())
             .requestInterceptor(template -> template.header("Authorization", "bearer " + token)));
+    }
+
+    @Bean
+    protected CcOperations ccPrivilegedClient(@Qualifier("clientRestTemplate") OAuth2RestTemplate restTemplate) {
+        return new FeignClient(apiBaseUrl, builder -> {
+            return builder.errorDecoder(stashErrorDecoder())
+                    .requestInterceptor(template ->
+                        template.header("Authorization", "bearer " + restTemplate.getAccessToken()));
+        });
+    }
+
+    @Value("${broker.user:/}")
+    private String brokerUser;
+
+    @Value("${broker.pass:/}")
+    private String brokerPass;
+
+    @Value("${broker.url:/}")
+    private String appBrokerBaseUrl;
+
+    @Bean
+    protected CatalogOperations catalogClient() {
+        CatalogOperations catalogClient = Feign.builder()
+                .encoder(new JacksonEncoder())
+                .requestInterceptor(new BasicAuthRequestInterceptor(brokerUser, brokerPass))
+                .target(CatalogOperations.class, appBrokerBaseUrl);
+        return catalogClient;
     }
 }

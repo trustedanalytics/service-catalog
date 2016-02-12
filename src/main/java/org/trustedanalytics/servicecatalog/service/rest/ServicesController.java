@@ -17,23 +17,36 @@ package org.trustedanalytics.servicecatalog.service.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
-import org.trustedanalytics.cloud.cc.api.CcExtendedService;
-import org.trustedanalytics.cloud.cc.api.CcExtendedServicePlan;
-import org.trustedanalytics.cloud.cc.api.CcOperationsServices;
-import org.trustedanalytics.servicecatalog.service.model.ServicePlanResponse;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import feign.Feign;
+import feign.RequestLine;
+import feign.auth.BasicAuthRequestInterceptor;
+import feign.jackson.JacksonEncoder;
+import org.json.JSONException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.trustedanalytics.cloud.cc.api.CcExtendedService;
+import org.trustedanalytics.cloud.cc.api.CcExtendedServicePlan;
+import org.trustedanalytics.cloud.cc.api.CcOperations;
+import org.trustedanalytics.cloud.cc.api.CcOrg;
+import org.trustedanalytics.cloud.cc.api.CcPlanVisibility;
+import org.trustedanalytics.servicecatalog.service.CatalogOperations;
+import org.trustedanalytics.servicecatalog.service.model.ServicePlanResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.UUID;
 
+import org.trustedanalytics.servicecatalog.service.model.ServiceRegistrationRequest;
 import rx.Observable;
+
 
 @RestController
 public class ServicesController {
@@ -43,12 +56,17 @@ public class ServicesController {
     public static final String GET_SERVICE_PLANS_URL = "/rest/services/{label}/service_plans";
     public static final String GET_FILTERED_SERVICES_URL = "/rest/services?space={space}";
     public static final String GET_SERVICE_DETAILS_URL = "/rest/services/{service}";
+    public static final String REGISTER_APPLICATION = "/rest/marketplace/application";
 
-    private final CcOperationsServices ccClient;
+    private final CcOperations ccClient;
+    private final CcOperations privilegedClient;
+    private final CatalogOperations catalogClient;
 
     @Autowired
-    public ServicesController(CcOperationsServices ccClient) {
+    public ServicesController(CcOperations ccClient, CcOperations ccPrivilegedClient, CatalogOperations catalogClient) {
         this.ccClient = ccClient;
+        this.privilegedClient = ccPrivilegedClient;
+        this.catalogClient = catalogClient;
     }
 
     @RequestMapping(value = GET_SERVICE_PLAN_URL, method = GET, produces = APPLICATION_JSON_VALUE)
@@ -62,8 +80,8 @@ public class ServicesController {
             return servicePlanResponse;
 
         CcExtendedServicePlan servicePlan = ccClient.getExtendedServicePlans(service.getMetadata().getGuid()).
-            firstOrDefault(null, extendedServicePlans -> extendedServicePlans.getEntity().getName().equals(plan)).
-            toBlocking().single();
+                firstOrDefault(null, extendedServicePlans -> extendedServicePlans.getEntity().getName().equals(plan)).
+                toBlocking().single();
         if (servicePlan == null)
             return servicePlanResponse;
 
@@ -77,7 +95,7 @@ public class ServicesController {
             .filter(service -> label.equals(service.getEntity().getLabel()))
             .firstOrDefault(null)
             .flatMap(service -> {
-                if(service != null) {
+                if (service != null) {
                     return ccClient.getExtendedServicePlans(service.getMetadata().getGuid());
                 } else {
                     return Observable.empty();
@@ -102,6 +120,40 @@ public class ServicesController {
     public CcExtendedService getService(@PathVariable UUID service) {
         return ccClient.getService(service)
             .toBlocking().single();
+    }
+
+    @RequestMapping(value = REGISTER_APPLICATION, method = POST,
+            produces = APPLICATION_JSON_VALUE)
+    public Collection<CcPlanVisibility> registerApplication(@RequestBody ServiceRegistrationRequest data) {
+        catalogClient.register(data);
+
+        CcOrg org = ccClient.getOrgs().first()
+                .toBlocking()
+                .single();
+
+        Collection<CcExtendedServicePlan> plans = privilegedClient.getExtendedServices()
+                .filter(service -> data.getName().equals(service.getEntity().getLabel()))
+                .firstOrDefault(null)
+                .flatMap(service -> {
+                    if (service != null) {
+                        return privilegedClient.getExtendedServicePlans(service.getMetadata().getGuid());
+                    } else {
+                        return Observable.empty();
+                    }
+                })
+                .toList()
+                .toBlocking()
+                .single();
+
+        Collection<CcPlanVisibility> result = new ArrayList<CcPlanVisibility>();
+        plans.forEach(plan -> {
+                    result.add(privilegedClient.setExtendedServicePlanVisibility(plan.getMetadata().getGuid(), org.getGuid()).first()
+                            .toBlocking()
+                            .single());
+                }
+        );
+
+        return result;
     }
 
 }

@@ -46,8 +46,8 @@ public class ApplicationsService {
     private final Predicate<CcServiceInstance> orphanServices = service -> service.getBoundAppCount() == 1;
 
     @Autowired
-    public ApplicationsService(CcOperations ccOperations) {
-        this.ccOperations = Objects.requireNonNull(ccOperations);
+    public ApplicationsService(CcOperations ccClient) {
+        this.ccOperations = Objects.requireNonNull(ccClient);
     }
 
     /**
