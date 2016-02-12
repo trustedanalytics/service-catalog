@@ -21,6 +21,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 
 @Data
 @NoArgsConstructor
@@ -34,6 +36,9 @@ public class ServiceRegistrationRequest {
     @JsonProperty("name")
     private String name;
 
+    @JsonProperty("org_guid")
+    private UUID organizationGuid;
+
     @JsonProperty("tags")
     private String[] tags;
 
@@ -43,43 +48,4 @@ public class ServiceRegistrationRequest {
     @JsonProperty("metadata")
     private ServiceRegistrationMetadata metadata;
 
-    public String[] getTags() {
-        return tags;
-    }
-
-    public void setTags(String[] tags) {
-        this.tags = tags;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public ServiceRegistrationApp getApp() {
-        return app;
-    }
-
-    public void setApp(ServiceRegistrationApp app) {
-        this.app = app;
-    }
-
-    public ServiceRegistrationMetadata getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(ServiceRegistrationMetadata metadata) {
-        this.metadata = metadata;
-    }
 }

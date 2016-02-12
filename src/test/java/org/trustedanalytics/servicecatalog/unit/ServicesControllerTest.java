@@ -212,14 +212,17 @@ public class ServicesControllerTest {
         when(privilegedClient.getExtendedServicePlans(any()))
                 .thenReturn(Observable.from(expectedExtendedServicePlan));
 
+        UUID orgId = UUID.randomUUID();
+
         ServiceRegistrationRequest request = new ServiceRegistrationRequest();
         request.setName("label");
+        request.setOrganizationGuid(orgId);
 
         when(catalogClient.register(request)).thenReturn(null);
         Collection<CcOrg> expectedCcOrgs =
                 new ArrayList<CcOrg>() {{
                 }};
-        CcOrg org = new CcOrg(UUID.randomUUID(), "org");
+        CcOrg org = new CcOrg(orgId, "org");
         expectedCcOrgs.add(org);
         when(ccClient.getOrgs()).thenReturn(Observable.from(expectedCcOrgs));
 

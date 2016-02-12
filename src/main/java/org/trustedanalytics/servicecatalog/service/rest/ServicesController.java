@@ -19,12 +19,14 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
+import com.google.common.base.Preconditions;
 import feign.Feign;
 import feign.RequestLine;
 import feign.auth.BasicAuthRequestInterceptor;
 import feign.jackson.JacksonEncoder;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,9 +42,7 @@ import org.trustedanalytics.servicecatalog.service.model.ServicePlanResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Collection;
-import java.util.ArrayList;
-import java.util.UUID;
+import java.util.*;
 
 import org.trustedanalytics.servicecatalog.service.model.ServiceRegistrationRequest;
 import rx.Observable;
@@ -124,14 +124,18 @@ public class ServicesController {
 
     @RequestMapping(value = REGISTER_APPLICATION, method = POST,
             produces = APPLICATION_JSON_VALUE)
-    public Collection<CcPlanVisibility> registerApplication(@RequestBody ServiceRegistrationRequest data) {
+    public List<CcPlanVisibility> registerApplication(@RequestBody ServiceRegistrationRequest data) {
+        Preconditions.checkNotNull(data.getOrganizationGuid());
+
+        CcOrg org = ccClient.getOrgs().filter(o -> data.getOrganizationGuid().equals(o.getGuid()))
+                .toBlocking().firstOrDefault(null);
+        if(org == null) {
+            throw new AccessDeniedException("Permission denied to access organization: " + data.getOrganizationGuid());
+        }
+
         catalogClient.register(data);
 
-        CcOrg org = ccClient.getOrgs().first()
-                .toBlocking()
-                .single();
-
-        Collection<CcExtendedServicePlan> plans = privilegedClient.getExtendedServices()
+        return privilegedClient.getExtendedServices()
                 .filter(service -> data.getName().equals(service.getEntity().getLabel()))
                 .firstOrDefault(null)
                 .flatMap(service -> {
@@ -141,19 +145,9 @@ public class ServicesController {
                         return Observable.empty();
                     }
                 })
-                .toList()
-                .toBlocking()
-                .single();
-
-        Collection<CcPlanVisibility> result = new ArrayList<CcPlanVisibility>();
-        plans.forEach(plan -> {
-                    result.add(privilegedClient.setExtendedServicePlanVisibility(plan.getMetadata().getGuid(), org.getGuid()).first()
-                            .toBlocking()
-                            .single());
-                }
-        );
-
-        return result;
+                .flatMap(plan ->
+                        privilegedClient.setExtendedServicePlanVisibility(plan.getMetadata().getGuid(),org.getGuid()))
+                .toList().toBlocking().single();
     }
 
 }
