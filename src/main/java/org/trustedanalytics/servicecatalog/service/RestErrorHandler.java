@@ -23,6 +23,7 @@ import static org.springframework.http.HttpStatus.CONFLICT;
 
 import org.springframework.security.access.AccessDeniedException;
 import org.trustedanalytics.cloud.cc.api.CcOutputBadFormatted;
+import org.trustedanalytics.cloud.cc.api.customizations.FeignResponseException;
 import org.trustedanalytics.servicecatalog.service.rest.NameAlreadyInUseException;
 import org.trustedanalytics.utils.errorhandling.ErrorLogger;
 import org.apache.commons.lang.StringUtils;
@@ -86,6 +87,12 @@ public class RestErrorHandler {
     public void handleFeignException(AccessDeniedException e, HttpServletResponse response) throws IOException {
         ErrorLogger.logAndSendErrorResponse(LOGGER, response, FORBIDDEN, e.getMessage(), e);
     }
+
+    @ExceptionHandler(FeignResponseException.class)
+    public void handleFeignResponse(FeignResponseException e, HttpServletResponse response) throws IOException {
+        ErrorLogger.logAndSendErrorResponse(LOGGER, response, e.getStatusCode(), e.getMessage(), e);
+    }
+
 
     private static String extractErrorFromJSON(String json){
         Map<String, String> map = new HashMap<>();
