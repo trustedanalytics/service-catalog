@@ -20,6 +20,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
+import io.swagger.annotations.ApiOperation;
 import org.trustedanalytics.cloud.cc.api.CcNewServiceBinding;
 import org.trustedanalytics.cloud.cc.api.CcOperationsApps;
 import org.trustedanalytics.cloud.cc.api.CcServiceBinding;
@@ -45,11 +46,13 @@ import java.util.UUID;
         this.ccClient = ccClient;
     }
 
+    @ApiOperation("Get service bindings for the application")
     @RequestMapping(value = GET_APP_BINDINGS_URL, method = GET, produces = APPLICATION_JSON_VALUE)
     public CcServiceBindingList getBindingsOfApp(@PathVariable UUID app) {
         return ccClient.getAppBindings(app);
     }
 
+    @ApiOperation("Creates service binding for the application")
     @RequestMapping(value = CREATE_SERVICE_BINDING_URL, method = POST,
         produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public CcServiceBinding createServiceBinding(@PathVariable UUID app,
@@ -57,6 +60,7 @@ import java.util.UUID;
         return ccClient.createServiceBinding(new CcNewServiceBinding(app, service.getServiceInstanceGuid()));
     }
 
+    @ApiOperation("Removes service binding for the application")
     @RequestMapping(value = DELETE_SERVICE_BINDING_URL, method = DELETE)
     public void deleteServiceBinding(@PathVariable UUID binding) {
         ccClient.deleteServiceBinding(binding);

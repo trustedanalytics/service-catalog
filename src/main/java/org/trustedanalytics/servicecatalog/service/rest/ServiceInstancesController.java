@@ -20,6 +20,9 @@ import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -60,6 +63,7 @@ import java.util.stream.Collectors;
         this.helpers = helpers;
     }
 
+    @ApiOperation("Get services instances filtering by broker in space")
     @RequestMapping(value = GET_ALL_SERVICE_INSTANCES_URL, method = GET,
         produces = APPLICATION_JSON_VALUE)
     public Collection<ServiceInstance> getAllServiceInstances(
@@ -73,6 +77,11 @@ import java.util.stream.Collectors;
         return FormatTranslator.getServiceInstancesFromPlainSummary(summary, broker);
     }
 
+    @ApiOperation("Creates service instance")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK"),
+            @ApiResponse(code = 409, message = "Request was malformed when service name is already in use")
+    })
     @RequestMapping(value = CREATE_SERVICE_INSTANCE_URL, method = POST,
         produces = APPLICATION_JSON_VALUE) public CcExtendedServiceInstance createServiceInstance(
         @RequestBody CcNewServiceInstance serviceInstance) {
@@ -88,11 +97,13 @@ import java.util.stream.Collectors;
         return ccClient.createServiceInstance(serviceInstance).toBlocking().single();
     }
 
+    @ApiOperation("Removes service instance")
     @RequestMapping(value = DELETE_SERVICE_INSTANCE_URL, method = DELETE)
     public void deleteServiceInstance(@PathVariable UUID instance) {
         ccClient.deleteServiceInstance(instance);
     }
 
+    @ApiOperation("Get services instances summary")
     @RequestMapping(value = SERVICE_INSTANCES_SUMMARY_URL, method = GET,
         produces = APPLICATION_JSON_VALUE)
     public Collection<Service> getServiceKeysSummary(@RequestParam("space") UUID spaceId,

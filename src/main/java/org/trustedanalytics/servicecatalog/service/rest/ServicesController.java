@@ -24,6 +24,9 @@ import feign.Feign;
 import feign.RequestLine;
 import feign.auth.BasicAuthRequestInterceptor;
 import feign.jackson.JacksonEncoder;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
@@ -69,6 +72,7 @@ public class ServicesController {
         this.catalogClient = catalogClient;
     }
 
+    @ApiOperation("Get plan guid for service")
     @RequestMapping(value = GET_SERVICE_PLAN_URL, method = GET, produces = APPLICATION_JSON_VALUE)
     public ServicePlanResponse getPlanGuid(@RequestParam(required = true) String label, @RequestParam(required = true) String plan) {
 
@@ -89,6 +93,7 @@ public class ServicesController {
         return servicePlanResponse;
     }
 
+    @ApiOperation("Get available plans for service")
     @RequestMapping(value = GET_SERVICE_PLANS_URL, method = GET, produces = APPLICATION_JSON_VALUE)
     public Collection<CcExtendedServicePlan> getServicePlans(@PathVariable String label) {
         return ccClient.getExtendedServices()
@@ -106,6 +111,7 @@ public class ServicesController {
             .single();
     }
 
+    @ApiOperation("Get summary for services in space")
     @RequestMapping(value = GET_ALL_SERVICES_URL, method = GET, produces = APPLICATION_JSON_VALUE)
     public Collection<CcExtendedService> getServices(@RequestParam(required = false) UUID space) {
         if(space == null) {
@@ -115,6 +121,7 @@ public class ServicesController {
             .toList().toBlocking().single();
     }
 
+    @ApiOperation("Get service summary")
     @RequestMapping(value = GET_SERVICE_DETAILS_URL, method = GET,
         produces = APPLICATION_JSON_VALUE)
     public CcExtendedService getService(@PathVariable UUID service) {
@@ -122,6 +129,11 @@ public class ServicesController {
             .toBlocking().single();
     }
 
+    @ApiOperation("Register application in catalog")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK"),
+            @ApiResponse(code = 403, message = "Request was malformed while registering without organization access")
+    })
     @RequestMapping(value = REGISTER_APPLICATION, method = POST,
             produces = APPLICATION_JSON_VALUE)
     public List<CcPlanVisibility> registerApplication(@RequestBody ServiceRegistrationRequest data) {

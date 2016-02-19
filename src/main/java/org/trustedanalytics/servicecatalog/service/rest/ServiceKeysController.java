@@ -20,6 +20,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -43,6 +44,7 @@ import java.util.UUID;
         this.ccClient = ccClient;
     }
 
+    @ApiOperation("Get all service keys")
     @RequestMapping(value = GET_ALL_SERVICE_KEYS_URL, method = GET,
         produces = APPLICATION_JSON_VALUE)
     public Collection<ServiceKey> getAllServiceKeys() {
@@ -50,12 +52,14 @@ import java.util.UUID;
             .toList().toBlocking().single();
     }
 
+    @ApiOperation("Adds new service key")
     @RequestMapping(value = GET_ALL_SERVICE_KEYS_URL, method = POST,
         produces = APPLICATION_JSON_VALUE)
     public ServiceKey createServiceKey(@RequestBody CcNewServiceKey serviceKey) {
         return ServiceKey.from(ccClient.createServiceKey(serviceKey).toBlocking().first());
     }
 
+    @ApiOperation("Removes service key")
     @RequestMapping(value = SERVICE_KEY_URL, method = DELETE,
             produces = APPLICATION_JSON_VALUE)
     public void deleteServiceKey(@PathVariable UUID guid) {

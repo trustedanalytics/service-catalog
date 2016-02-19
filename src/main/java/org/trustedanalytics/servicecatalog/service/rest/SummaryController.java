@@ -18,6 +18,7 @@ package org.trustedanalytics.servicecatalog.service.rest;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
+import io.swagger.annotations.ApiOperation;
 import org.trustedanalytics.cloud.cc.api.CcOperations;
 import org.trustedanalytics.cloud.cc.api.CcSummary;
 
@@ -41,6 +42,7 @@ public class SummaryController {
         this.ccClient = ccClient;
     }
 
+    @ApiOperation("Get summary for apps and service deployed in space")
     @RequestMapping(value = GET_SPACE_SUMMARY_URL, method = GET, produces = APPLICATION_JSON_VALUE)
     public CcSummary getSpaceSummary(@RequestParam(required = false) UUID space) {
         if(space != null) {

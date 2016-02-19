@@ -20,6 +20,9 @@ import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.trustedanalytics.cloud.cc.api.CcApp;
 import org.trustedanalytics.cloud.cc.api.CcAppStatus;
 import org.trustedanalytics.cloud.cc.api.CcAppSummary;
@@ -54,6 +57,7 @@ public class ApplicationsController {
         this.applicationsService = applicationsService;
     }
 
+    @ApiOperation("Get applications from given space")
     @RequestMapping(value = GET_ALL_APPS_URL, method = GET, produces = APPLICATION_JSON_VALUE)
     public Collection<CcApp> getFilteredApplications(@RequestParam(required = false, value = "space") UUID space,
         @RequestParam(value = "service_label") Optional<String> serviceLabel) {
@@ -65,16 +69,23 @@ public class ApplicationsController {
             .orElse(applicationsService.getSpaceApps(space));
     }
 
+    @ApiOperation("Get application details")
     @RequestMapping(value = GET_APP_DETAILS_URL, method = GET, produces = APPLICATION_JSON_VALUE)
     public CcAppSummary getAppsDetails(@PathVariable UUID app) {
         return applicationsService.getAppSummary(app);
     }
 
+    @ApiOperation("Get service instances bounded only to given application")
     @RequestMapping(value = GET_APP_ORPHAN_SERVICES, method = GET, produces = APPLICATION_JSON_VALUE)
     public Collection<CcServiceInstance> getAppOrphanServices(@PathVariable UUID app){
         return applicationsService.getAppServices(app, service -> service.getBoundAppCount() == 1);
     }
 
+    @ApiOperation("Restages application")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "OK"),
+        @ApiResponse(code = 400, message = "Request was malformed when application status is null")
+    })
     @RequestMapping(value = RESTAGE_APP_URL, method = POST)
     public void restageApp(@PathVariable UUID app, @RequestBody CcAppStatus status) {
         if (status.getState() == null) {
@@ -98,6 +109,7 @@ public class ApplicationsController {
         }
     }
 
+    @ApiOperation("Removes application, cascade option allows removing bounded service instances for given application")
     @RequestMapping(value = DELETE_APP_URL, method = DELETE)
     public void deleteApp(@PathVariable UUID app, @RequestParam(value = "cascade") Optional<Boolean> cascade) {
         if(cascade.orElse(false)) {
