@@ -10,5 +10,5 @@ applications:
   - marketplace-register-service
   env:
     SPRING_PROFILES_ACTIVE: "cloud"
-    JBP_CONFIG_OPEN_JDK_JRE: "[memory_sizes: {metaspace: 128m..}]"
+    JBP_CONFIG_OPEN_JDK_JRE: "[memory_calculator: {memory_sizes: {metaspace: 128m..}}]"
     VERSION: ${version}
