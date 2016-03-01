@@ -29,6 +29,6 @@ endpoints.enabled: false
 endpoints.health.enabled: true
 
 broker:
-  user: ${vcap.services.marketplace-register-service.credentials.username}
-  pass: ${vcap.services.marketplace-register-service.credentials.password}
-  url: ${vcap.services.marketplace-register-service.credentials.applicationBrokerUrl}
+  user: ${vcap.services.marketplace-register-service.credentials.username:admin}
+  pass: ${vcap.services.marketplace-register-service.credentials.password:admin}
+  url: ${vcap.services.marketplace-register-service.credentials.applicationBrokerUrl:http://application-broker.example.com}
