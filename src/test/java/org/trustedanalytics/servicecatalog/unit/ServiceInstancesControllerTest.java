@@ -17,11 +17,7 @@ package org.trustedanalytics.servicecatalog.unit;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.trustedanalytics.servicecatalog.unit.ServiceInstancesTestHelpers.getServiceInstances;
 import static org.trustedanalytics.servicecatalog.unit.ServiceInstancesTestHelpers.getServiceKeys;
 import static org.trustedanalytics.servicecatalog.unit.ServiceInstancesTestHelpers.getServices;
@@ -33,14 +29,15 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.trustedanalytics.cloud.cc.api.CcExtendedServiceInstance;
-import org.trustedanalytics.cloud.cc.api.CcNewServiceInstance;
-import org.trustedanalytics.cloud.cc.api.CcOperations;
-import org.trustedanalytics.cloud.cc.api.CcSummary;
+import org.springframework.security.core.Authentication;
+import org.trustedanalytics.cloud.cc.api.*;
+import org.trustedanalytics.cloud.uaa.UserIdNamePair;
 import org.trustedanalytics.servicecatalog.service.model.Service;
 import org.trustedanalytics.servicecatalog.service.model.ServiceInstance;
+import org.trustedanalytics.servicecatalog.service.model.ServiceInstanceMetadata;
 import org.trustedanalytics.servicecatalog.service.rest.ServiceInstancesController;
 import org.trustedanalytics.servicecatalog.service.rest.ServiceInstancesControllerHelpers;
+import org.trustedanalytics.servicecatalog.storage.ServiceInstanceRegistry;
 import org.trustedanalytics.servicecatalog.utils.ServiceInstancesTestsResources;
 import rx.Observable;
 
@@ -64,17 +61,22 @@ public class ServiceInstancesControllerTest {
     @Mock
     private ServiceInstancesControllerHelpers controllerHelpers;
 
+    @Mock
+    private ServiceInstanceRegistry serviceInstanceRegistry;
+
     @Before
     public void setUp() {
         spaceSummaryReturnedByCcAdapter =
             ServiceInstancesTestsResources.spaceSummaryReturnedByCcAdapter();
         when(ccClient.getSpaceSummary(any(UUID.class))).thenReturn(spaceSummaryReturnedByCcAdapter);
-        sut = new ServiceInstancesController(ccClient, controllerHelpers);
+        sut = new ServiceInstancesController(ccClient, controllerHelpers, serviceInstanceRegistry);
     }
 
     @Test
     public void getAllServiceInstances_withoutServiceFilter_returnAllServiceInstancesFromCloudfoundry() {
         UUID service = null;
+        ServiceInstanceMetadata metadata = new ServiceInstanceMetadata(UUID.randomUUID(), "test-user");
+        when(serviceInstanceRegistry.getInstanceCreator(any(UUID.class))).thenReturn(metadata);
 
         Collection<ServiceInstance> allNotFilteredServiceInstances =
             ServiceInstancesTestsResources.allNotFilteredServiceInstances();
@@ -92,18 +94,61 @@ public class ServiceInstancesControllerTest {
     }
 
     @Test
+    public void getAllServiceInstances_getInstancesCreatorsFromStore() {
+        ServiceInstanceMetadata metadata = new ServiceInstanceMetadata(UUID.randomUUID(), "test-user");
+        when(serviceInstanceRegistry.getInstanceCreator(any(UUID.class))).thenReturn(metadata);
+
+        Collection<ServiceInstance> serviceInstances =
+                sut.getAllServiceInstances(SPACE_GUID, null);
+
+        verify(serviceInstanceRegistry, times(serviceInstances.size())).getInstanceCreator(any(UUID.class));
+        serviceInstances.stream().allMatch(i -> i.getMetadata().getCreatorName() != null);
+        serviceInstances.stream().allMatch(i -> i.getMetadata().getCreatorUUID() != null);
+    }
+
+    @Test
     public void createServiceInstance_createInstanceAndReturnIt() {
         ArgumentCaptor<CcNewServiceInstance> captor = ArgumentCaptor.forClass(
             CcNewServiceInstance.class);
         CcNewServiceInstance passed = mock(CcNewServiceInstance.class);
         CcExtendedServiceInstance returned = mock(CcExtendedServiceInstance.class);
+        CcMetadata instanceMetadata = mock(CcMetadata.class);
+        UserIdNamePair creator = UserIdNamePair.of(UUID.randomUUID(), "test-user");
+        when(returned.getMetadata()).thenReturn(instanceMetadata);
+        when(instanceMetadata.getGuid()).thenReturn(UUID.randomUUID());
         when(ccClient.createServiceInstance(any(CcNewServiceInstance.class))).thenReturn(Observable.just(returned));
+        when(controllerHelpers.findUserName(any(Authentication.class))).thenReturn(creator.getUserName());
+        when(controllerHelpers.findUserId(any(Authentication.class))).thenReturn(creator.getGuid());
 
-        CcExtendedServiceInstance result = sut.createServiceInstance(passed);
+        CcExtendedServiceInstance result = sut.createServiceInstance(passed, null);
 
         verify(ccClient).createServiceInstance(captor.capture());
         assertEquals(passed, captor.getValue());
         assertEquals(returned, result);
+    }
+
+    @Test
+    public void createServiceInstance_addInstanceCreatorToStore() {
+        ArgumentCaptor<CcNewServiceInstance> captor = ArgumentCaptor.forClass(
+                CcNewServiceInstance.class);
+        final UserIdNamePair creator = UserIdNamePair.of(UUID.randomUUID(), "test-user");
+        final UUID instanceUUID = UUID.randomUUID();
+        final String instanceName = "test-instance";
+        CcNewServiceInstance passed = new CcNewServiceInstance(instanceName, UUID.randomUUID(), UUID.randomUUID(),
+                UUID.randomUUID());
+        CcExtendedServiceInstance returned = new CcExtendedServiceInstance();
+        CcMetadata returnedMetadata = new CcMetadata();
+        returnedMetadata.setGuid(instanceUUID);
+        returned.setMetadata(returnedMetadata);
+
+        when(ccClient.createServiceInstance(any(CcNewServiceInstance.class))).thenReturn(Observable.just(returned));
+        when(controllerHelpers.findUserName(any(Authentication.class))).thenReturn(creator.getUserName());
+        when(controllerHelpers.findUserId(any(Authentication.class))).thenReturn(creator.getGuid());
+
+        CcExtendedServiceInstance result = sut.createServiceInstance(passed, null);
+
+        verify(serviceInstanceRegistry).addInstanceCreator(instanceUUID,
+                new ServiceInstanceMetadata(creator.getGuid(), creator.getUserName()));
     }
 
     @Test
@@ -114,6 +159,16 @@ public class ServiceInstancesControllerTest {
         sut.deleteServiceInstance(serviceGuid);
 
         verify(ccClient).deleteServiceInstance(serviceGuid);
+    }
+
+    @Test
+    public void deleteServiceInstance_removeInstanceCreatorFromStore() {
+        doNothing().when(ccClient).deleteServiceInstance(any(UUID.class));
+        UUID serviceGuid = UUID.randomUUID();
+
+        sut.deleteServiceInstance(serviceGuid);
+
+        verify(serviceInstanceRegistry).deleteInstanceCreator(serviceGuid);
     }
 
     @Test

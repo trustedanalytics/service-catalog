@@ -16,11 +16,14 @@
 package org.trustedanalytics.servicecatalog.service.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Component;
 import org.trustedanalytics.cloud.cc.api.CcOperations;
 import org.trustedanalytics.servicecatalog.service.model.Service;
 import org.trustedanalytics.servicecatalog.service.model.ServiceInstance;
 import org.trustedanalytics.servicecatalog.service.model.ServiceKey;
+import org.trustedanalytics.servicecatalog.security.AccessTokenDetails;
 import rx.Observable;
 
 import java.util.ArrayList;
@@ -86,5 +89,23 @@ public class ServiceInstancesControllerHelpers {
         return serviceKeys.toList().toBlocking().single()
             .stream()
             .collect(Collectors.groupingBy(ServiceKey::getService_instance_guid));
+    }
+
+    public UUID findUserId(Authentication authentication) {
+        if (authentication == null) {
+            throw new IllegalArgumentException("Authentication argument must not be null");
+        }
+        OAuth2Authentication oauth2 = (OAuth2Authentication) authentication;
+        AccessTokenDetails details = (AccessTokenDetails) oauth2.getUserAuthentication().getDetails();
+        UUID userUUID = details.getUserGuid();
+        return userUUID;
+    }
+
+    public String findUserName(Authentication authentication) {
+        if (authentication == null) {
+            throw new IllegalArgumentException("Authentication argument must not be null");
+        }
+        OAuth2Authentication oauth2 = (OAuth2Authentication) authentication;
+        return oauth2.getName();
     }
 }

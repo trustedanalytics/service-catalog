@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.trustedanalytics.cloud.cc.api.CcServiceInstance;
 import org.trustedanalytics.cloud.cc.api.CcServicePlan;
+import org.trustedanalytics.cloud.uaa.UserIdNamePair;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -32,6 +33,9 @@ public class ServiceInstance {
     private UUID guid;
     private String name;
     private UUID service;
+
+    @JsonProperty("metadata")
+    private ServiceInstanceMetadata metadata;
 
     @JsonProperty("service_plan")
     private CcServicePlan servicePlan;

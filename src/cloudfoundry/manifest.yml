@@ -5,9 +5,10 @@ applications:
   instances: 1
   host: service-catalog
   path: target/service-catalog-${version}.jar
-  services: 
+  services:
   - sso
   - marketplace-register-service
+  - service-instances-metadata
   env:
     SPRING_PROFILES_ACTIVE: "cloud"
     JBP_CONFIG_OPEN_JDK_JRE: "[memory_calculator: {memory_sizes: {metaspace: 128m..}}]"
