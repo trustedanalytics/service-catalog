@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import org.trustedanalytics.cloud.cc.api.CcLastOperation;
 import org.trustedanalytics.cloud.cc.api.CcServiceInstance;
 import org.trustedanalytics.cloud.cc.api.CcServicePlan;
 import org.trustedanalytics.cloud.uaa.UserIdNamePair;
@@ -50,6 +51,9 @@ public class ServiceInstance {
     @JsonProperty("service_keys")
     private Collection<ServiceKey> serviceKeys;
 
+    @JsonProperty("last_operation")
+    private CcLastOperation lastOperation;
+
     public ServiceInstance() {
     }
 
@@ -65,6 +69,7 @@ public class ServiceInstance {
     public ServiceInstance(CcServiceInstance ccServInst, Collection<App> boundApps) {
         guid = ccServInst.getGuid();
         name = ccServInst.getName();
+        lastOperation = ccServInst.getLastOperation();
         servicePlan = ccServInst.getServicePlan();
         service = ccServInst.getServiceGuid();
         this.boundApps = boundApps != null ? boundApps : new LinkedList<>();
