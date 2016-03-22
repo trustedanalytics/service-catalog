@@ -46,13 +46,21 @@ import java.util.UUID;
         this.ccClient = ccClient;
     }
 
-    @ApiOperation("Get service bindings for the application")
+    @ApiOperation(
+            value = "Get service bindings for the application",
+            notes = "Privilege level: Consumer of this endpoint must have access to space within application is running." +
+                    " Verification is performed by Cloud Controller using user token"
+    )
     @RequestMapping(value = GET_APP_BINDINGS_URL, method = GET, produces = APPLICATION_JSON_VALUE)
     public CcServiceBindingList getBindingsOfApp(@PathVariable UUID app) {
         return ccClient.getAppBindings(app);
     }
 
-    @ApiOperation("Creates service binding for the application")
+    @ApiOperation(
+            value = "Creates service binding for the application",
+            notes = "Privilege level: Consumer of this endpoint must have access to space that service belongs to." +
+                    " Verification is performed by Cloud Controller using user token"
+    )
     @RequestMapping(value = CREATE_SERVICE_BINDING_URL, method = POST,
         produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public CcServiceBinding createServiceBinding(@PathVariable UUID app,
@@ -60,7 +68,11 @@ import java.util.UUID;
         return ccClient.createServiceBinding(new CcNewServiceBinding(app, service.getServiceInstanceGuid()));
     }
 
-    @ApiOperation("Removes service binding for the application")
+    @ApiOperation(
+            value = "Removes service binding for the application",
+            notes = "Privilege level: Consumer of this endpoint must have access to space within binding is registered." +
+                    " Verification is performed by Cloud Controller using user token"
+    )
     @RequestMapping(value = DELETE_SERVICE_BINDING_URL, method = DELETE)
     public void deleteServiceBinding(@PathVariable UUID binding) {
         ccClient.deleteServiceBinding(binding);

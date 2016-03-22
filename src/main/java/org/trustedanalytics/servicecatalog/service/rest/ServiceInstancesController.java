@@ -73,7 +73,10 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
         this.serviceInstanceRegistry = serviceInstanceRegistry;
     }
 
-    @ApiOperation("Get services instances filtering by broker in space")
+    @ApiOperation(
+            value = "Get services instances filtering by broker in space",
+            notes = "Privilege level: Consumer of this endpoint must be a member of specified space"
+    )
     @RequestMapping(value = GET_ALL_SERVICE_INSTANCES_URL, method = GET,
         produces = APPLICATION_JSON_VALUE)
     public Collection<ServiceInstance> getAllServiceInstances(
@@ -94,7 +97,10 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
         return serviceInstances;
     }
 
-    @ApiOperation("Creates service instance")
+    @ApiOperation(
+            value = "Creates service instance",
+            notes = "Privilege level: Consumer of this endpoint must be a member of space to create service instance"
+    )
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "OK"),
             @ApiResponse(code = 409, message = "Request was malformed when service name is already in use")
@@ -123,14 +129,21 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
         return createdInstance;
     }
 
-    @ApiOperation("Removes service instance")
+    @ApiOperation(
+            value = "Removes service instance",
+            notes = "Privilege level: Consumer of this endpoint must have access to space that service instance belongs to" +
+                    " Verification is performed by Cloud Controller using user token"
+    )
     @RequestMapping(value = DELETE_SERVICE_INSTANCE_URL, method = DELETE)
     public void deleteServiceInstance(@PathVariable UUID instance) {
         ccClient.deleteServiceInstance(instance);
         serviceInstanceRegistry.deleteInstanceCreator(instance);
     }
 
-    @ApiOperation("Get services instances summary")
+    @ApiOperation(
+            value = "Get services instances summary",
+            notes = "Privilege level: Consumer of this endpoint must be a member of specified space"
+    )
     @RequestMapping(value = SERVICE_INSTANCES_SUMMARY_URL, method = GET,
         produces = APPLICATION_JSON_VALUE)
     public Collection<Service> getServiceKeysSummary(@RequestParam("space") UUID spaceId,
@@ -138,7 +151,10 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
         return getSpaceSummary(spaceId, fetchKeys);
     }
 
-    @ApiOperation("Get space summary with instance metadata injected")
+    @ApiOperation(
+            value = "Get space summary with instance metadata injected",
+            notes = "Privilege level: Consumer of this endpoint must be a member of specified space"
+    )
     @RequestMapping(value = SPACE_SUMMARY_URL, method = GET, produces = APPLICATION_JSON_VALUE)
     public Summary getExtendedSpaceSummary(@RequestParam("space") UUID spaceId) {
         if (spaceId == null) {

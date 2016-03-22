@@ -44,7 +44,10 @@ import java.util.UUID;
         this.ccClient = ccClient;
     }
 
-    @ApiOperation("Get all service keys")
+    @ApiOperation(
+            value = "Get all service keys",
+            notes = "Privilege level: Consumer of this endpoint must be user authenticated in Cloud Foundry"
+    )
     @RequestMapping(value = GET_ALL_SERVICE_KEYS_URL, method = GET,
         produces = APPLICATION_JSON_VALUE)
     public Collection<ServiceKey> getAllServiceKeys() {
@@ -52,14 +55,20 @@ import java.util.UUID;
             .toList().toBlocking().single();
     }
 
-    @ApiOperation("Adds new service key")
+    @ApiOperation(
+            value = "Adds new service key",
+            notes = "Privilege level: Consumer of this endpoint must be user authenticated in Cloud Foundry"
+    )
     @RequestMapping(value = GET_ALL_SERVICE_KEYS_URL, method = POST,
         produces = APPLICATION_JSON_VALUE)
     public ServiceKey createServiceKey(@RequestBody CcNewServiceKey serviceKey) {
         return ServiceKey.from(ccClient.createServiceKey(serviceKey).toBlocking().first());
     }
 
-    @ApiOperation("Removes service key")
+    @ApiOperation(
+            value = "Removes service key",
+            notes = "Privilege level: Consumer of this endpoint must be user authenticated in Cloud Foundry"
+    )
     @RequestMapping(value = SERVICE_KEY_URL, method = DELETE,
             produces = APPLICATION_JSON_VALUE)
     public void deleteServiceKey(@PathVariable UUID guid) {

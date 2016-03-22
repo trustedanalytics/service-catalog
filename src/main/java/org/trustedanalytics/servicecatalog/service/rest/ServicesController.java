@@ -72,7 +72,11 @@ public class ServicesController {
         this.catalogClient = catalogClient;
     }
 
-    @ApiOperation("Get plan guid for service")
+    @ApiOperation(
+            value = "Get plan guid for service using label",
+            notes = "Privilege level: Consumer of this endpoint must have access to space that service belongs to" +
+                    " Verification is performed by Cloud Controller using user token"
+    )
     @RequestMapping(value = GET_SERVICE_PLAN_URL, method = GET, produces = APPLICATION_JSON_VALUE)
     public ServicePlanResponse getPlanGuid(@RequestParam(required = true) String label, @RequestParam(required = true) String plan) {
 
@@ -93,7 +97,11 @@ public class ServicesController {
         return servicePlanResponse;
     }
 
-    @ApiOperation("Get available plans for service")
+    @ApiOperation(
+            value = "Get available plans for service using label",
+            notes = "Privilege level: Consumer of this endpoint must have access to space that service belongs to" +
+                    " Verification is performed by Cloud Controller using user token"
+    )
     @RequestMapping(value = GET_SERVICE_PLANS_URL, method = GET, produces = APPLICATION_JSON_VALUE)
     public Collection<CcExtendedServicePlan> getServicePlans(@PathVariable String label) {
         return ccClient.getExtendedServices()
@@ -111,7 +119,10 @@ public class ServicesController {
             .single();
     }
 
-    @ApiOperation("Get summary for services in space")
+    @ApiOperation(
+            value = "Get summary for services in space",
+            notes = "Privilege level: Consumer of this endpoint must be a member of specified space"
+    )
     @RequestMapping(value = GET_ALL_SERVICES_URL, method = GET, produces = APPLICATION_JSON_VALUE)
     public Collection<CcExtendedService> getServices(@RequestParam(required = false) UUID space) {
         if(space == null) {
@@ -121,7 +132,11 @@ public class ServicesController {
             .toList().toBlocking().single();
     }
 
-    @ApiOperation("Get service summary")
+    @ApiOperation(
+            value = "Get service summary",
+            notes = "Privilege level: Consumer of this endpoint must have access to space that service belongs to" +
+                    " Verification is performed by Cloud Controller using user token"
+    )
     @RequestMapping(value = GET_SERVICE_DETAILS_URL, method = GET,
         produces = APPLICATION_JSON_VALUE)
     public CcExtendedService getService(@PathVariable UUID service) {
@@ -129,7 +144,10 @@ public class ServicesController {
             .toBlocking().single();
     }
 
-    @ApiOperation("Register application in catalog")
+    @ApiOperation(
+            value = "Register application in catalog",
+            notes = "Privilege level: Consumer of this endpoint must be a member of organization"
+    )
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "OK"),
             @ApiResponse(code = 403, message = "Request was malformed while registering without organization access")

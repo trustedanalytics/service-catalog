@@ -42,7 +42,10 @@ public class SummaryController {
         this.ccClient = ccClient;
     }
 
-    @ApiOperation("Get summary for apps and service deployed in space")
+    @ApiOperation(
+            value = "Get summary for apps and service deployed in space",
+            notes = "Privilege level: Consumer of this endpoint must be a member of specified space"
+    )
     @RequestMapping(value = GET_SPACE_SUMMARY_URL, method = GET, produces = APPLICATION_JSON_VALUE)
     public CcSummary getSpaceSummary(@RequestParam(required = false) UUID space) {
         if(space != null) {

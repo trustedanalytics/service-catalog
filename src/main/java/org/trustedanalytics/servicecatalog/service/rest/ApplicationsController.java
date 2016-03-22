@@ -57,7 +57,10 @@ public class ApplicationsController {
         this.applicationsService = applicationsService;
     }
 
-    @ApiOperation("Get applications from given space")
+    @ApiOperation(
+            value = "Get applications from given space",
+            notes = "Privilege level: Consumer of this endpoint must be a member of specified space"
+    )
     @RequestMapping(value = GET_ALL_APPS_URL, method = GET, produces = APPLICATION_JSON_VALUE)
     public Collection<CcApp> getFilteredApplications(@RequestParam(required = false, value = "space") UUID space,
         @RequestParam(value = "service_label") Optional<String> serviceLabel) {
@@ -69,19 +72,31 @@ public class ApplicationsController {
             .orElse(applicationsService.getSpaceApps(space));
     }
 
-    @ApiOperation("Get application details")
+    @ApiOperation(
+            value = "Get application details",
+            notes = "Privilege level: Consumer of this endpoint must have access to space within application is running." +
+                    " Verification is performed by Cloud Controller using user token"
+    )
     @RequestMapping(value = GET_APP_DETAILS_URL, method = GET, produces = APPLICATION_JSON_VALUE)
     public CcAppSummary getAppsDetails(@PathVariable UUID app) {
         return applicationsService.getAppSummary(app);
     }
 
-    @ApiOperation("Get service instances bounded only to given application")
+    @ApiOperation(
+            value = "Get service instances bounded only to given application",
+            notes = "Privilege level: Consumer of this endpoint must have access to space within application is running." +
+                    " Verification is performed by Cloud Controller using user token"
+    )
     @RequestMapping(value = GET_APP_ORPHAN_SERVICES, method = GET, produces = APPLICATION_JSON_VALUE)
     public Collection<CcServiceInstance> getAppOrphanServices(@PathVariable UUID app){
         return applicationsService.getAppServices(app, service -> service.getBoundAppCount() == 1);
     }
 
-    @ApiOperation("Restages application")
+    @ApiOperation(
+            value = "Restages application",
+            notes = "Privilege level: Consumer of this endpoint must have access to space within application is running." +
+                    " Verification is performed by Cloud Controller using user token"
+    )
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "OK"),
         @ApiResponse(code = 400, message = "Request was malformed when application status is null")
@@ -109,7 +124,11 @@ public class ApplicationsController {
         }
     }
 
-    @ApiOperation("Removes application, cascade option allows removing bounded service instances for given application")
+    @ApiOperation(
+            value = "Removes application, cascade option allows removing bounded service instances for given application",
+            notes = "Privilege level: Consumer of this endpoint must have access to space within application is running." +
+                    " Verification is performed by Cloud Controller using user token"
+    )
     @RequestMapping(value = DELETE_APP_URL, method = DELETE)
     public void deleteApp(@PathVariable UUID app, @RequestParam(value = "cascade") Optional<Boolean> cascade) {
         if(cascade.orElse(false)) {
