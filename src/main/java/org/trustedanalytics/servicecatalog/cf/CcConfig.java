@@ -34,6 +34,7 @@ import org.springframework.web.client.RestTemplate;
 import org.trustedanalytics.cloud.auth.OAuth2TokenRetriever;
 import org.trustedanalytics.cloud.cc.FeignClient;
 import org.trustedanalytics.cloud.cc.api.CcOperations;
+import org.trustedanalytics.cloud.cc.api.customizations.OAuth2RequestInterceptor;
 import org.trustedanalytics.servicecatalog.service.CatalogOperations;
 import org.trustedanalytics.servicecatalog.service.StashErrorDecoder;
 
@@ -59,8 +60,7 @@ public class CcConfig {
         final String token = tokenRetriever.getAuthToken(auth);
 
         return new FeignClient(apiBaseUrl, builder -> builder
-            .errorDecoder(stashErrorDecoder())
-            .requestInterceptor(template -> template.header("Authorization", "bearer " + token)));
+            .requestInterceptor(new OAuth2RequestInterceptor(token)));
     }
 
     @Bean
