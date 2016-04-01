@@ -65,11 +65,9 @@ public class CcConfig {
 
     @Bean
     protected CcOperations ccPrivilegedClient(@Qualifier("clientRestTemplate") OAuth2RestTemplate restTemplate) {
-        return new FeignClient(apiBaseUrl, builder -> {
-            return builder.errorDecoder(stashErrorDecoder())
-                    .requestInterceptor(template ->
-                        template.header("Authorization", "bearer " + restTemplate.getAccessToken()));
-        });
+        return new FeignClient(apiBaseUrl, builder -> builder.requestInterceptor(template ->
+            template.header("Authorization", "bearer " + restTemplate.getAccessToken()))
+        );
     }
 
     @Value("${broker.user:/}")
