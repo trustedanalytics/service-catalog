@@ -18,11 +18,12 @@ package org.trustedanalytics.servicecatalog.service.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Data;
+
 import org.trustedanalytics.cloud.cc.api.CcLastOperation;
 import org.trustedanalytics.cloud.cc.api.CcServiceInstance;
 import org.trustedanalytics.cloud.cc.api.CcServicePlan;
-import org.trustedanalytics.cloud.uaa.UserIdNamePair;
 
 import java.util.Collection;
 import java.util.LinkedList;

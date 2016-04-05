@@ -17,7 +17,6 @@
 package org.trustedanalytics.servicecatalog.service;
 
 import org.trustedanalytics.cloud.cc.api.CcApp;
-import org.trustedanalytics.cloud.cc.api.CcAppState;
 import org.trustedanalytics.cloud.cc.api.CcAppStatus;
 import org.trustedanalytics.cloud.cc.api.CcAppSummary;
 import org.trustedanalytics.cloud.cc.api.CcOperations;

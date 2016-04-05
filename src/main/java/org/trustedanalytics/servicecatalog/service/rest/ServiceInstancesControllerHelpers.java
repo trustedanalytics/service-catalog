@@ -97,8 +97,7 @@ public class ServiceInstancesControllerHelpers {
         }
         OAuth2Authentication oauth2 = (OAuth2Authentication) authentication;
         AccessTokenDetails details = (AccessTokenDetails) oauth2.getUserAuthentication().getDetails();
-        UUID userUUID = details.getUserGuid();
-        return userUUID;
+        return details.getUserGuid();
     }
 
     public String findUserName(Authentication authentication) {

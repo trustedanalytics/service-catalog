@@ -28,7 +28,7 @@ import org.trustedanalytics.servicecatalog.service.model.ServiceInstanceMetadata
 public class StorageConfig {
 
     private StorageConfig(){
-    };
+    }
 
     @Configuration
     public static class RedisStorageConfig {
@@ -36,7 +36,7 @@ public class StorageConfig {
         @Bean
         public RedisOperations<String, ServiceInstanceMetadata> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
             return CommonConfiguration.redisTemplate(redisConnectionFactory,
-                    new JacksonJsonRedisSerializer<ServiceInstanceMetadata>(ServiceInstanceMetadata.class));
+                new JacksonJsonRedisSerializer<>(ServiceInstanceMetadata.class));
         }
 
         @Bean
@@ -57,7 +57,7 @@ public class StorageConfig {
 
         private static <T> RedisOperations<String, T>
         redisTemplate(RedisConnectionFactory redisConnectionFactory, RedisSerializer<T> valueSerializer) {
-            RedisTemplate<String, T> template = new RedisTemplate<String, T>();
+            RedisTemplate<String, T> template = new RedisTemplate<>();
             template.setConnectionFactory(redisConnectionFactory);
 
             RedisSerializer<String> stringSerializer = new StringRedisSerializer();

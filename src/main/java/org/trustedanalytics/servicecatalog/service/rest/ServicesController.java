@@ -20,21 +20,18 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 import com.google.common.base.Preconditions;
-import feign.Feign;
-import feign.RequestLine;
-import feign.auth.BasicAuthRequestInterceptor;
-import feign.jackson.JacksonEncoder;
+
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.json.JSONException;
-import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 import org.trustedanalytics.cloud.cc.api.CcExtendedService;
 import org.trustedanalytics.cloud.cc.api.CcExtendedServicePlan;
 import org.trustedanalytics.cloud.cc.api.CcOperations;
@@ -45,7 +42,9 @@ import org.trustedanalytics.servicecatalog.service.model.ServicePlanResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
 
 import org.trustedanalytics.servicecatalog.service.model.ServiceRegistrationRequest;
 import rx.Observable;
@@ -179,5 +178,4 @@ public class ServicesController {
                         privilegedClient.setExtendedServicePlanVisibility(plan.getMetadata().getGuid(),org.getGuid()))
                 .toList().toBlocking().single();
     }
-
 }
