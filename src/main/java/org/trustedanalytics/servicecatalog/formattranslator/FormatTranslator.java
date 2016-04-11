@@ -100,8 +100,8 @@ public class FormatTranslator {
     private static void addAppToExistingGroup(Map<String, Collection<App>> groupedApps,
         App appToAdd,
         String serviceName) {
-        Collection<App> apps = groupedApps.get(serviceName);
-        apps.add(appToAdd);
+        Optional.ofNullable(groupedApps.get(serviceName))
+                .ifPresent(apps -> apps.add(appToAdd));
     }
 
     private static void addAppToNewGroup(Map<String, Collection<App>> groupedApps, App appToAdd,

@@ -64,6 +64,11 @@ public class RestErrorHandler {
         ErrorLogger.logAndSendErrorResponse(LOGGER, response, INTERNAL_SERVER_ERROR, e);
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public void illegalState(Exception e, HttpServletResponse response) throws IOException {
+        ErrorLogger.logAndSendErrorResponse(LOGGER, response, INTERNAL_SERVER_ERROR, e);
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public void badRequest(Exception e, HttpServletResponse response) throws IOException {
         ErrorLogger.logAndSendErrorResponse(LOGGER, response, BAD_REQUEST, e);

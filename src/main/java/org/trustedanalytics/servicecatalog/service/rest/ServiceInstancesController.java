@@ -60,6 +60,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
     public static final String SERVICE_INSTANCES_SUMMARY_URL = "/rest/service_instances/summary";
     public static final String SPACE_SUMMARY_URL = "/rest/service_instances/extended_summary";
 
+    private static final String CREATING_INSTANCE_ERROR = "Error while creating service instance";
+
     private final CcOperations ccClient;
     private final ServiceInstancesControllerHelpers helpers;
     private final ServiceInstanceRegistry serviceInstanceRegistry;
@@ -120,8 +122,9 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
         }
 
         CcExtendedServiceInstance createdInstance = ccClient.createServiceInstance(serviceInstance).toBlocking().single();
-        Preconditions.checkState(createdInstance != null);
-        Preconditions.checkState(createdInstance.getMetadata().getGuid() != null);
+        Preconditions.checkState(createdInstance != null, CREATING_INSTANCE_ERROR);
+        Preconditions.checkState(createdInstance.getMetadata() != null, CREATING_INSTANCE_ERROR);
+        Preconditions.checkState(createdInstance.getMetadata().getGuid() != null, CREATING_INSTANCE_ERROR);
 
         serviceInstanceRegistry.addInstanceCreator(createdInstance.getMetadata().getGuid(),
                 new ServiceInstanceMetadata(helpers.findUserId(authentication), helpers.findUserName(authentication)));
