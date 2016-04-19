@@ -13,21 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.trustedanalytics.servicecatalog.service;
+package org.trustedanalytics.servicecatalog.service.model;
 
-import feign.Param;
-import feign.RequestLine;
-import org.trustedanalytics.servicecatalog.service.model.ServiceBroker;
-import org.trustedanalytics.servicecatalog.service.model.ServiceRegistrationRequest;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Data;
 
+import java.util.Collection;
 
-public interface CatalogOperations {
-    @RequestLine("GET /v2/catalog")
-    ServiceBroker getCatalog();
+@Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ServiceBroker {
 
-    @RequestLine("POST /v2/catalog")
-    Object register(ServiceRegistrationRequest application);
-
-    @RequestLine("DELETE /v2/catalog/{service}")
-    void deregister(@Param("service") String service);
+    private Collection<ServiceRegistrationRequest> services;
 }

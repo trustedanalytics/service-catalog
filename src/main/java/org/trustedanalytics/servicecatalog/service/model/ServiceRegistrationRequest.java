@@ -25,27 +25,22 @@ import java.util.UUID;
 
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ServiceRegistrationRequest {
 
-    @JsonProperty("description")
     private String description;
 
-    @JsonProperty("name")
     private String name;
 
     @JsonProperty("org_guid")
     private UUID organizationGuid;
 
-    @JsonProperty("tags")
     private String[] tags;
 
-    @JsonProperty("app")
+    private UUID id;
+
     private ServiceRegistrationApp app;
 
-    @JsonProperty("metadata")
     private ServiceRegistrationMetadata metadata;
 
 }

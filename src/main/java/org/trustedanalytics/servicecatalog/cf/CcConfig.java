@@ -20,6 +20,7 @@ import static org.springframework.web.context.WebApplicationContext.SCOPE_REQUES
 
 import feign.Feign;
 import feign.auth.BasicAuthRequestInterceptor;
+import feign.jackson.JacksonDecoder;
 import feign.jackson.JacksonEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -80,6 +81,7 @@ public class CcConfig {
     protected CatalogOperations catalogClient() {
         return Feign.builder()
                 .encoder(new JacksonEncoder())
+                .decoder(new JacksonDecoder())
                 .requestInterceptor(new BasicAuthRequestInterceptor(brokerUser, brokerPass))
                 .target(CatalogOperations.class, appBrokerBaseUrl);
     }

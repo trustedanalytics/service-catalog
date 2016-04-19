@@ -27,14 +27,5 @@ import org.trustedanalytics.cloud.cc.api.CcMetadata;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ServiceRegistrationApp {
-    @JsonProperty("metadata")
     private CcMetadata metadata;
-
-    public CcMetadata getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(CcMetadata metadata) {
-        this.metadata = metadata;
-    }
 }

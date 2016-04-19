@@ -28,6 +28,8 @@ import org.json.JSONObject;
 
 import org.trustedanalytics.cloud.cc.api.*;
 import org.trustedanalytics.servicecatalog.service.CatalogOperations;
+import org.trustedanalytics.servicecatalog.service.model.ServiceBroker;
+import org.trustedanalytics.servicecatalog.service.model.ServiceDetails;
 import org.trustedanalytics.servicecatalog.service.rest.ServicesController;
 import org.trustedanalytics.servicecatalog.service.model.ServiceRegistrationRequest;
 
@@ -45,6 +47,7 @@ import rx.Observable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
@@ -121,10 +124,15 @@ public class ServicesControllerTest {
         UUID serviceId = UUID.fromString("8efd7c5c-d83c-4786-b399-b7bd548839e2");
         CcExtendedService expectedService = new CcExtendedService();
         when(ccClient.getService(any(UUID.class))).thenReturn(Observable.just(expectedService));
+        ServiceBroker catalog = new ServiceBroker();
+        catalog.setServices(new LinkedList<ServiceRegistrationRequest>(){ });
+        when(catalogClient.getCatalog()).thenReturn(catalog);
+        ServiceDetails result = new ServiceDetails();
+        result.setService(expectedService);
+        result.setDeletable(false);
+        ServiceDetails serviceData = sut.getService(serviceId);
 
-        CcExtendedService serviceData = sut.getService(serviceId);
-
-        assertEquals(expectedService, serviceData);
+        assertEquals(result, serviceData);
     }
 
     @Test
@@ -218,7 +226,7 @@ public class ServicesControllerTest {
         request.setName("label");
         request.setOrganizationGuid(orgId);
 
-        when(catalogClient.register(request)).thenReturn(null);
+        when(catalogClient.register(request)).thenReturn(new Object());
         Collection<CcOrg> expectedCcOrgs =
                 new ArrayList<CcOrg>() {{
                 }};
@@ -236,8 +244,8 @@ public class ServicesControllerTest {
         when(privilegedClient.setExtendedServicePlanVisibility(extendedServicePlan.getMetadata().getGuid(),
                 org.getGuid())).thenReturn(Observable.from(expectedVisibility));
 
-        Collection<CcPlanVisibility> plans = sut.registerApplication(request);
+        CcExtendedService plans = sut.registerApplication(request);
 
-        assertEquals(plans, expectedVisibility);
+        assertEquals(plans, extendedService);
     }
 }

@@ -16,6 +16,7 @@
 package org.trustedanalytics.servicecatalog.service.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -25,6 +26,9 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
+import org.cloudfoundry.identity.uaa.login.ConflictException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,11 +42,14 @@ import org.trustedanalytics.cloud.cc.api.CcOperations;
 import org.trustedanalytics.cloud.cc.api.CcOrg;
 import org.trustedanalytics.cloud.cc.api.CcPlanVisibility;
 import org.trustedanalytics.servicecatalog.service.CatalogOperations;
+import org.trustedanalytics.servicecatalog.service.model.ServiceBroker;
+import org.trustedanalytics.servicecatalog.service.model.ServiceDetails;
 import org.trustedanalytics.servicecatalog.service.model.ServicePlanResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
@@ -59,6 +66,7 @@ public class ServicesController {
     public static final String GET_FILTERED_SERVICES_URL = "/rest/services?space={space}";
     public static final String GET_SERVICE_DETAILS_URL = "/rest/services/{service}";
     public static final String REGISTER_APPLICATION = "/rest/marketplace/application";
+    public static final String CLONED_APPLICATION = "/rest/marketplace/application/{service}";
 
     private final CcOperations ccClient;
     private final CcOperations privilegedClient;
@@ -138,9 +146,19 @@ public class ServicesController {
     )
     @RequestMapping(value = GET_SERVICE_DETAILS_URL, method = GET,
         produces = APPLICATION_JSON_VALUE)
-    public CcExtendedService getService(@PathVariable UUID service) {
-        return ccClient.getService(service)
-            .toBlocking().single();
+    public ServiceDetails getService(@PathVariable UUID service) {
+        ServiceDetails result = new ServiceDetails();
+        result.setDeletable(false);
+        CcExtendedService ccService = ccClient.getService(service)
+                .toBlocking().single();
+        result.setService(ccService);
+        ServiceBroker catalogResult = catalogClient.getCatalog();
+        for (ServiceRegistrationRequest item : catalogResult.getServices()) {
+            if(item.getId().toString().equals(ccService.getEntity().getUniqueId())){
+                result.setDeletable(true);
+            }
+        }
+        return result;
     }
 
     @ApiOperation(
@@ -153,7 +171,7 @@ public class ServicesController {
     })
     @RequestMapping(value = REGISTER_APPLICATION, method = POST,
             produces = APPLICATION_JSON_VALUE)
-    public List<CcPlanVisibility> registerApplication(@RequestBody ServiceRegistrationRequest data) {
+    public CcExtendedService registerApplication(@RequestBody ServiceRegistrationRequest data) {
         Preconditions.checkNotNull(data.getOrganizationGuid());
 
         CcOrg org = ccClient.getOrgs().filter(o -> data.getOrganizationGuid().equals(o.getGuid()))
@@ -164,18 +182,60 @@ public class ServicesController {
 
         catalogClient.register(data);
 
-        return privilegedClient.getExtendedServices()
-                .filter(service -> data.getName().equals(service.getEntity().getLabel()))
-                .firstOrDefault(null)
-                .flatMap(service -> {
-                    if (service != null) {
-                        return privilegedClient.getExtendedServicePlans(service.getMetadata().getGuid());
-                    } else {
-                        return Observable.empty();
-                    }
-                })
-                .flatMap(plan ->
-                        privilegedClient.setExtendedServicePlanVisibility(plan.getMetadata().getGuid(),org.getGuid()))
-                .toList().toBlocking().single();
+        Observable<CcExtendedService> extendedService = privilegedClient.getExtendedServices().
+                firstOrDefault(null, service -> data.getName().equals(service.getEntity().getLabel()));
+
+        extendedService
+            .flatMap(service -> {
+                if (service != null) {
+                    return privilegedClient.getExtendedServicePlans(service.getMetadata().getGuid());
+                } else {
+                    return Observable.empty();
+                }
+            })
+            .flatMap(plan ->
+                    privilegedClient.setExtendedServicePlanVisibility(plan.getMetadata().getGuid(),org.getGuid()))
+            .toList().toBlocking().single();
+
+        return extendedService.toBlocking().single();
     }
+
+    @RequestMapping(value = CLONED_APPLICATION, method = DELETE)
+    public ResponseEntity<String> deregisterApplication(@PathVariable UUID service) {
+
+        ServiceBroker catalogResult = catalogClient.getCatalog();
+        if (catalogResult.getServices().isEmpty() || catalogResult.getServices().size() < 2) {
+            return new ResponseEntity<String>(HttpStatus.CONFLICT);
+        }
+
+        CcExtendedService ccService = ccClient.getService(service)
+                .toBlocking().single();
+
+        for (ServiceRegistrationRequest item : catalogResult.getServices()) {
+            if(item.getId().toString().equals(ccService.getEntity().getUniqueId())){
+                catalogClient.deregister(ccService.getEntity().getUniqueId());
+            }
+        }
+
+        return new ResponseEntity<String>(HttpStatus.OK);
+    }
+
+    @RequestMapping(value = CLONED_APPLICATION, method = GET)
+    public Collection<CcExtendedService> getClonedApplications(@PathVariable UUID service) {
+        ServiceBroker catalogResult = catalogClient.getCatalog();
+        Collection<ServiceRegistrationRequest> services = new LinkedList<ServiceRegistrationRequest>();
+
+        for (ServiceRegistrationRequest item : catalogResult.getServices()) {
+            if(item.getApp().getMetadata().getGuid().equals(service)){
+                services.add(item);
+            }
+        }
+        Collection<CcExtendedService> result = new LinkedList<CcExtendedService>();
+        for (ServiceRegistrationRequest item : services) {
+            result.add(ccClient.getExtendedServices()
+                    .filter(s -> item.getName().equals(s.getEntity().getLabel())).toBlocking().single());
+        }
+        return result;
+    }
+
 }
