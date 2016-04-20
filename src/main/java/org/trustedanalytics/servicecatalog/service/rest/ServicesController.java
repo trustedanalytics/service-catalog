@@ -147,18 +147,17 @@ public class ServicesController {
     @RequestMapping(value = GET_SERVICE_DETAILS_URL, method = GET,
         produces = APPLICATION_JSON_VALUE)
     public ServiceDetails getService(@PathVariable UUID service) {
-        ServiceDetails result = new ServiceDetails();
-        result.setDeletable(false);
         CcExtendedService ccService = ccClient.getService(service)
                 .toBlocking().single();
-        result.setService(ccService);
         ServiceBroker catalogResult = catalogClient.getCatalog();
+        boolean isDeletable = false;
         for (ServiceRegistrationRequest item : catalogResult.getServices()) {
             if(item.getId().toString().equals(ccService.getEntity().getUniqueId())){
-                result.setDeletable(true);
+                isDeletable = true;
+                break;
             }
         }
-        return result;
+        return new ServiceDetails(ccService, isDeletable);
     }
 
     @ApiOperation(
