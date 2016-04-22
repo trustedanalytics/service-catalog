@@ -1,3 +1,5 @@
+package org.trustedanalytics.servicecatalog.service.rest;
+
 /**
  * Copyright (c) 2015 Intel Corporation
  *
@@ -13,26 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.trustedanalytics.servicecatalog.service.model;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.trustedanalytics.cloud.cc.api.CcExtendedService;
-import org.trustedanalytics.cloud.cc.api.CcExtendedServiceEntity;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.UUID;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class ServiceDetails {
-
-    private CcExtendedService service;
-
-    private boolean deletable;
+public class NoItemInCatalogException extends RuntimeException {
+    public NoItemInCatalogException(String message) {
+        super(message);
+    }
 }

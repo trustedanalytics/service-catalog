@@ -41,6 +41,9 @@ import org.trustedanalytics.cloud.cc.api.CcExtendedServicePlan;
 import org.trustedanalytics.cloud.cc.api.CcOperations;
 import org.trustedanalytics.cloud.cc.api.CcOrg;
 import org.trustedanalytics.cloud.cc.api.CcPlanVisibility;
+import org.trustedanalytics.cloud.cc.api.queries.Filter;
+import org.trustedanalytics.cloud.cc.api.queries.FilterOperator;
+import org.trustedanalytics.cloud.cc.api.queries.FilterQuery;
 import org.trustedanalytics.servicecatalog.service.CatalogOperations;
 import org.trustedanalytics.servicecatalog.service.model.ServiceBroker;
 import org.trustedanalytics.servicecatalog.service.model.ServiceDetails;
@@ -149,15 +152,11 @@ public class ServicesController {
     public ServiceDetails getService(@PathVariable UUID service) {
         CcExtendedService ccService = ccClient.getService(service)
                 .toBlocking().single();
-        ServiceBroker catalogResult = catalogClient.getCatalog();
-        boolean isDeletable = false;
-        for (ServiceRegistrationRequest item : catalogResult.getServices()) {
-            if(item.getId().toString().equals(ccService.getEntity().getUniqueId())){
-                isDeletable = true;
-                break;
-            }
-        }
-        return new ServiceDetails(ccService, isDeletable);
+
+        return catalogClient.getCatalog().getServices().stream()
+                .filter(item -> item.getId().toString().equals(ccService.getEntity().getUniqueId()))
+                .findFirst().map(item -> new ServiceDetails(ccService, true))
+                .orElse(new ServiceDetails(ccService, false));
     }
 
     @ApiOperation(
@@ -199,12 +198,17 @@ public class ServicesController {
         return extendedService.toBlocking().single();
     }
 
+
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK"),
+            @ApiResponse(code = 409, message = "No services for delete")
+    })
     @RequestMapping(value = CLONED_APPLICATION, method = DELETE)
-    public ResponseEntity<String> deregisterApplication(@PathVariable UUID service) {
+    public void deregisterApplication(@PathVariable UUID service) {
 
         ServiceBroker catalogResult = catalogClient.getCatalog();
         if (catalogResult.getServices().isEmpty() || catalogResult.getServices().size() < 2) {
-            return new ResponseEntity<String>(HttpStatus.CONFLICT);
+            throw new NoItemInCatalogException("Catalog is empty or have only 1 item left.");
         }
 
         CcExtendedService ccService = ccClient.getService(service)
@@ -216,24 +220,21 @@ public class ServicesController {
             }
         }
 
-        return new ResponseEntity<String>(HttpStatus.OK);
     }
 
     @RequestMapping(value = CLONED_APPLICATION, method = GET)
     public Collection<CcExtendedService> getClonedApplications(@PathVariable UUID service) {
         ServiceBroker catalogResult = catalogClient.getCatalog();
-        Collection<ServiceRegistrationRequest> services = new LinkedList<ServiceRegistrationRequest>();
+        Collection<CcExtendedService> result = new LinkedList<CcExtendedService>();
 
         for (ServiceRegistrationRequest item : catalogResult.getServices()) {
             if(item.getApp().getMetadata().getGuid().equals(service)){
-                services.add(item);
+                final FilterQuery filter =
+                        FilterQuery.from(Filter.LABEL, FilterOperator.EQ, item.getName());
+                result.add(ccClient.getExtendedServices(filter).toBlocking().single());
             }
         }
-        Collection<CcExtendedService> result = new LinkedList<CcExtendedService>();
-        for (ServiceRegistrationRequest item : services) {
-            result.add(ccClient.getExtendedServices()
-                    .filter(s -> item.getName().equals(s.getEntity().getLabel())).toBlocking().single());
-        }
+
         return result;
     }
 

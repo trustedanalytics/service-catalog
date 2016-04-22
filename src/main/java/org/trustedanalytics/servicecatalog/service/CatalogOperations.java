@@ -17,6 +17,7 @@ package org.trustedanalytics.servicecatalog.service;
 
 import feign.Param;
 import feign.RequestLine;
+import org.trustedanalytics.cloud.cc.api.CcExtendedService;
 import org.trustedanalytics.servicecatalog.service.model.ServiceBroker;
 import org.trustedanalytics.servicecatalog.service.model.ServiceRegistrationRequest;
 
