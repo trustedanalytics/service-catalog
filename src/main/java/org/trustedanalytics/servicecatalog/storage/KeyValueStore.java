@@ -17,7 +17,6 @@ package org.trustedanalytics.servicecatalog.storage;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 public interface KeyValueStore<T> {
     boolean hasKey(String key);

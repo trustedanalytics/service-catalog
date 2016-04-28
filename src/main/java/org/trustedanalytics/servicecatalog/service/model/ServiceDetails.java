@@ -20,11 +20,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.trustedanalytics.cloud.cc.api.CcExtendedService;
-import org.trustedanalytics.cloud.cc.api.CcExtendedServiceEntity;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.UUID;
 
 @Data
 @NoArgsConstructor

@@ -15,11 +15,9 @@
  */
 package org.trustedanalytics.servicecatalog.service.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.trustedanalytics.cloud.cc.api.CcApp;
-import org.trustedanalytics.cloud.cc.api.CcSummary;
 
 import java.util.Collection;
 

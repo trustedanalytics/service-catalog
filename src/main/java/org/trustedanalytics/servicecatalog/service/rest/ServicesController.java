@@ -26,9 +26,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
-import org.cloudfoundry.identity.uaa.login.ConflictException;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,7 +37,6 @@ import org.trustedanalytics.cloud.cc.api.CcExtendedService;
 import org.trustedanalytics.cloud.cc.api.CcExtendedServicePlan;
 import org.trustedanalytics.cloud.cc.api.CcOperations;
 import org.trustedanalytics.cloud.cc.api.CcOrg;
-import org.trustedanalytics.cloud.cc.api.CcPlanVisibility;
 import org.trustedanalytics.cloud.cc.api.queries.Filter;
 import org.trustedanalytics.cloud.cc.api.queries.FilterOperator;
 import org.trustedanalytics.cloud.cc.api.queries.FilterQuery;
@@ -53,7 +49,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.UUID;
 
 import org.trustedanalytics.servicecatalog.service.model.ServiceRegistrationRequest;

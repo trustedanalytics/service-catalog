@@ -28,7 +28,6 @@ import rx.Observable;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -88,7 +87,7 @@ public class ServiceInstancesControllerHelpers {
     private Map<UUID, List<ServiceKey>> createServiceKeysIndex(Observable<ServiceKey> serviceKeys) {
         return serviceKeys.toList().toBlocking().single()
             .stream()
-            .collect(Collectors.groupingBy(ServiceKey::getService_instance_guid));
+            .collect(Collectors.groupingBy(ServiceKey::getServiceInstanceGuid));
     }
 
     public UUID findUserId(Authentication authentication) {

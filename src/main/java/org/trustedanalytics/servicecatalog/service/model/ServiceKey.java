@@ -15,6 +15,7 @@
  */
 package org.trustedanalytics.servicecatalog.service.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -30,13 +31,15 @@ public class ServiceKey {
 
     private UUID guid;
     private String name;
-    private UUID service_instance_guid;
     private Object credentials;
+
+    @JsonProperty("service_instance_guid")
+    private UUID serviceInstanceGuid;
 
     public static ServiceKey from(CcServiceKey input) {
         return new ServiceKey(input.getMetadata().getGuid(),
             input.getEntity().getName(),
-            input.getEntity().getServiceInstanceGuid(),
-            input.getEntity().getCredentials());
+            input.getEntity().getCredentials(),
+            input.getEntity().getServiceInstanceGuid());
     }
 }
