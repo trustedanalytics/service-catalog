@@ -21,6 +21,7 @@ import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_IMPLEMENTED;
 
+import org.springframework.beans.TypeMismatchException;
 import org.trustedanalytics.cloud.cc.api.CcOutputBadFormatted;
 import org.trustedanalytics.cloud.cc.api.customizations.CloudFoundryException;
 import org.trustedanalytics.cloud.cc.api.customizations.FeignResponseException;
@@ -49,7 +50,7 @@ import javax.servlet.http.HttpServletResponse;
 public class RestErrorHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(RestErrorHandler.class);
 
-    @ExceptionHandler(IllegalArgumentException.class)
+    @ExceptionHandler({IllegalArgumentException.class,TypeMismatchException.class})
     public void illegalArgument(Exception e, HttpServletResponse response) throws IOException {
         ErrorLogger.logAndSendErrorResponse(LOGGER, response, BAD_REQUEST, e);
     }
