@@ -22,13 +22,13 @@ PACKAGE_CATALOG=${PROJECT_NAME}-${VERSION}
 JAR_NAME="${PACKAGE_CATALOG}.jar"
 
 # build project
-mvn clean install -Dmaven.test.skip=true
+mvn clean package -Dmaven.test.skip=true
 
 # create tmp catalog
 mkdir ${PACKAGE_CATALOG}
 
 # files to package
-cp src/cloudfoundry/manifest.yml ${PACKAGE_CATALOG}
+cp manifest.yml ${PACKAGE_CATALOG}
 cp --parents target/${JAR_NAME} ${PACKAGE_CATALOG}
 
 # prepare build manifest
