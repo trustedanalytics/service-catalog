@@ -26,6 +26,7 @@ import org.trustedanalytics.cloud.cc.api.CcOutputBadFormatted;
 import org.trustedanalytics.cloud.cc.api.customizations.CloudFoundryException;
 import org.trustedanalytics.cloud.cc.api.customizations.FeignResponseException;
 import org.trustedanalytics.servicecatalog.service.rest.NameAlreadyInUseException;
+import org.trustedanalytics.servicecatalog.service.rest.NoItemInCatalogException;
 import org.trustedanalytics.utils.errorhandling.ErrorLogger;
 
 import org.apache.commons.lang.StringUtils;
@@ -106,6 +107,11 @@ public class RestErrorHandler {
     @ExceptionHandler(CloudFoundryException.class)
     public void handleCloudFoundryException(CloudFoundryException e, HttpServletResponse response) throws IOException {
         ErrorLogger.logAndSendErrorResponse(LOGGER, response, HttpStatus.valueOf(e.getHttpCode()), e.getMessage(), e);
+    }
+
+    @ExceptionHandler(NoItemInCatalogException.class)
+    public void handleNoItemInCatalogException(NoItemInCatalogException e, HttpServletResponse response) throws IOException {
+        ErrorLogger.logAndSendErrorResponse(LOGGER, response, BAD_REQUEST, e.getMessage(), e);
     }
 
     private static String extractErrorFromJSON(String json){
