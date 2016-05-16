@@ -27,12 +27,16 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.trustedanalytics.cloud.auth.OAuth2TokenRetriever;
 import org.trustedanalytics.cloud.cc.api.CcExtendedService;
 import org.trustedanalytics.cloud.cc.api.CcExtendedServicePlan;
 import org.trustedanalytics.cloud.cc.api.CcOperations;
@@ -47,8 +51,10 @@ import org.trustedanalytics.servicecatalog.service.model.ServicePlanResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.trustedanalytics.servicecatalog.service.model.ServiceRegistrationRequest;
@@ -69,6 +75,11 @@ public class ServicesController {
     private final CcOperations ccClient;
     private final CcOperations privilegedClient;
     private final CatalogOperations catalogClient;
+
+    private static final String ADMIN_ROLE = "console.admin";
+
+    @Autowired
+    private OAuth2TokenRetriever tokenRetriever;
 
     @Autowired
     public ServicesController(CcOperations ccClient, CcOperations ccPrivilegedClient, CatalogOperations catalogClient) {
@@ -150,7 +161,7 @@ public class ServicesController {
 
         return catalogClient.getCatalog().getServices().stream()
                 .filter(item -> item.getId().toString().equals(ccService.getEntity().getUniqueId()))
-                .findFirst().map(item -> new ServiceDetails(ccService, true))
+                .findFirst().map(item -> new ServiceDetails(ccService, canDeleteOffering(ccService.getMetadata().getGuid())))
                 .orElse(new ServiceDetails(ccService, false));
     }
 
@@ -196,7 +207,8 @@ public class ServicesController {
 
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "OK"),
-            @ApiResponse(code = 409, message = "No services for delete")
+            @ApiResponse(code = 400, message = "No services for delete"),
+            @ApiResponse(code = 403, message = "Your are not authorize to delete this service")
     })
     @RequestMapping(value = CLONED_APPLICATION, method = DELETE)
     public void deregisterApplication(@PathVariable UUID service) {
@@ -209,6 +221,10 @@ public class ServicesController {
         CcExtendedService ccService = ccClient.getService(service)
                 .toBlocking().single();
 
+        if (!canDeleteOffering(ccService.getMetadata().getGuid())) {
+            throw new AccessDeniedException("User not authorize to delete this service");
+        }
+
         for (ServiceRegistrationRequest item : catalogResult.getServices()) {
             if(item.getId().toString().equals(ccService.getEntity().getUniqueId())){
                 catalogClient.deregister(ccService.getEntity().getUniqueId());
@@ -220,7 +236,7 @@ public class ServicesController {
     @RequestMapping(value = CLONED_APPLICATION, method = GET)
     public Collection<CcExtendedService> getClonedApplications(@PathVariable UUID service) {
         ServiceBroker catalogResult = catalogClient.getCatalog();
-        Collection<CcExtendedService> result = new LinkedList<CcExtendedService>();
+        Collection<CcExtendedService> result = new LinkedList<>();
 
         for (ServiceRegistrationRequest item : catalogResult.getServices()) {
             if(item.getApp().getMetadata().getGuid().equals(service)){
@@ -231,6 +247,28 @@ public class ServicesController {
         }
 
         return result;
+    }
+
+    public boolean canDeleteOffering(UUID serviceGuid) {
+        final FilterQuery filter =
+                FilterQuery.from(Filter.SERVICE_PLAN_GUID, FilterOperator.EQ, serviceGuid);
+        boolean isPublic = privilegedClient.getExtendedServicePlans(serviceGuid)
+                .exists(plan -> plan.getEntity().getPublicStatus())
+                .toBlocking().single();
+
+        boolean inAnotherOrg = privilegedClient.getExtendedServicePlanVisibility(filter)
+                .distinct(visibility -> visibility.getEntity().getOrgGuid())
+                        .count().toBlocking().single() > 1;
+
+        if (!isPublic && !inAnotherOrg) {
+            return true;
+        }
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Collection<? extends GrantedAuthority> authorities = Optional
+                .ofNullable(auth.getAuthorities()).orElse(new ArrayList<>());
+        return authorities.stream()
+                .map(GrantedAuthority::getAuthority).anyMatch(ADMIN_ROLE::equalsIgnoreCase);
     }
 
 }
