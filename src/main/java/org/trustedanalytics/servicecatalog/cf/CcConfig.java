@@ -34,6 +34,8 @@ import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.trustedanalytics.cloud.auth.OAuth2TokenRetriever;
 import org.trustedanalytics.cloud.cc.FeignClient;
 import org.trustedanalytics.cloud.cc.api.CcOperations;
+import org.trustedanalytics.cloud.cc.api.customizations.CompositeErrorDecoder;
+import org.trustedanalytics.cloud.cc.api.customizations.FeignErrorDecoderHandler;
 import org.trustedanalytics.cloud.cc.api.customizations.OAuth2RequestInterceptor;
 import org.trustedanalytics.servicecatalog.service.CatalogOperations;
 import org.trustedanalytics.servicecatalog.service.StashErrorDecoder;
@@ -83,6 +85,7 @@ public class CcConfig {
                 .encoder(new JacksonEncoder())
                 .decoder(new JacksonDecoder())
                 .requestInterceptor(new BasicAuthRequestInterceptor(brokerUser, brokerPass))
+                .errorDecoder(new CompositeErrorDecoder(new FeignErrorDecoderHandler("description")))
                 .target(CatalogOperations.class, appBrokerBaseUrl);
     }
 }
